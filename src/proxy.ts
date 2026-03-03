@@ -58,6 +58,10 @@ import { getStats } from "./stats.js";
 import { RequestDeduplicator } from "./dedup.js";
 import { ResponseCache, type ResponseCacheConfig } from "./response-cache.js";
 import { BalanceMonitor } from "./balance.js";
+import { SolanaBalanceMonitor } from "./solana-balance.js";
+
+/** Union type for chain-agnostic balance monitoring */
+type AnyBalanceMonitor = BalanceMonitor | SolanaBalanceMonitor;
 import { resolvePaymentChain } from "./auth.js";
 import { compressContext, shouldCompress, type NormalizedMessage } from "./compression/index.js";
 // Error classes available for programmatic use but not used in proxy
@@ -889,7 +893,7 @@ export type ProxyHandle = {
   baseUrl: string;
   walletAddress: string;
   solanaAddress?: string;
-  balanceMonitor: BalanceMonitor;
+  balanceMonitor: AnyBalanceMonitor;
   close: () => Promise<void>;
 };
 
@@ -1128,7 +1132,6 @@ export async function startProxy(options: ProxyOptions): Promise<ProxyHandle> {
   if (existingProxy) {
     // Proxy already running — reuse it instead of failing with EADDRINUSE
     const account = privateKeyToAccount(walletKey as `0x${string}`);
-    const balanceMonitor = new BalanceMonitor(account.address);
     const baseUrl = `http://127.0.0.1:${listenPort}`;
 
     // Verify the existing proxy is using the same wallet (or warn if different)
@@ -1162,6 +1165,12 @@ export async function startProxy(options: ProxyOptions): Promise<ProxyHandle> {
       const solanaSigner = await createKeyPairSignerFromPrivateKeyBytes(solanaPrivateKeyBytes);
       reuseSolanaAddress = solanaSigner.address;
     }
+
+    // Use chain-appropriate balance monitor
+    const balanceMonitor: AnyBalanceMonitor =
+      paymentChain === "solana" && reuseSolanaAddress
+        ? new SolanaBalanceMonitor(reuseSolanaAddress)
+        : new BalanceMonitor(account.address);
 
     options.onReady?.(listenPort);
 
@@ -1207,8 +1216,11 @@ export async function startProxy(options: ProxyOptions): Promise<ProxyHandle> {
 
   const payFetch = createPayFetchWithPreAuth(fetch, x402);
 
-  // Create balance monitor for pre-request checks
-  const balanceMonitor = new BalanceMonitor(account.address);
+  // Create balance monitor for pre-request checks (chain-appropriate)
+  const balanceMonitor: AnyBalanceMonitor =
+    paymentChain === "solana" && solanaAddress
+      ? new SolanaBalanceMonitor(solanaAddress)
+      : new BalanceMonitor(account.address);
 
   // Build router options (100% local — no external API calls for routing)
   const routingConfig = mergeRoutingConfig(options.routingConfig);
@@ -1595,7 +1607,7 @@ async function tryModelRequest(
     input: RequestInfo | URL,
     init?: RequestInit,
   ) => Promise<Response>,
-  balanceMonitor: BalanceMonitor,
+  balanceMonitor: AnyBalanceMonitor,
   signal: AbortSignal,
 ): Promise<ModelRequestResult> {
   // Update model in body and normalize messages
@@ -1717,7 +1729,7 @@ async function proxyRequest(
   options: ProxyOptions,
   routerOpts: RouterOptions,
   deduplicator: RequestDeduplicator,
-  balanceMonitor: BalanceMonitor,
+  balanceMonitor: AnyBalanceMonitor,
   sessionStore: SessionStore,
   responseCache: ResponseCache,
   sessionJournal: SessionJournal,

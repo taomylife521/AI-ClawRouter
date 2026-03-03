@@ -20,6 +20,13 @@ export type SolanaBalanceInfo = {
   walletAddress: string;
 };
 
+/** Result from checkSufficient() */
+export type SolanaSufficiencyResult = {
+  sufficient: boolean;
+  info: SolanaBalanceInfo;
+  shortfall?: string;
+};
+
 export class SolanaBalanceMonitor {
   private readonly rpc: ReturnType<typeof createSolanaRpc>;
   private readonly walletAddress: string;
@@ -57,6 +64,30 @@ export class SolanaBalanceMonitor {
   async refresh(): Promise<SolanaBalanceInfo> {
     this.invalidate();
     return this.checkBalance();
+  }
+
+  /**
+   * Check if balance is sufficient for an estimated cost.
+   */
+  async checkSufficient(estimatedCostMicros: bigint): Promise<SolanaSufficiencyResult> {
+    const info = await this.checkBalance();
+    if (info.balance >= estimatedCostMicros) {
+      return { sufficient: true, info };
+    }
+    const shortfall = estimatedCostMicros - info.balance;
+    return {
+      sufficient: false,
+      info,
+      shortfall: this.formatUSDC(shortfall),
+    };
+  }
+
+  /**
+   * Format USDC amount (in micros) as "$X.XX".
+   */
+  formatUSDC(amountMicros: bigint): string {
+    const dollars = Number(amountMicros) / 1_000_000;
+    return `$${dollars.toFixed(2)}`;
   }
 
   getWalletAddress(): string {
