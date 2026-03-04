@@ -27,7 +27,7 @@ import {
 
 const SOLANA_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOLANA_DEFAULT_RPC = "https://api.mainnet-beta.solana.com";
-const TOKEN_PROGRAM = "TokenkegQfeN4jV6bme4LphiJbfPe2VopRsimuVSoZ5K" as Address;
+const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" as Address;
 const ASSOCIATED_TOKEN_PROGRAM = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL" as Address;
 const SYSTEM_PROGRAM = "11111111111111111111111111111111" as Address;
 
