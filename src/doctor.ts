@@ -12,7 +12,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { wrapFetchWithPayment, x402Client } from "@x402/fetch";
 import { registerExactEvmScheme } from "@x402/evm/exact/client";
 import { toClientEvmSigner } from "@x402/evm";
-import { resolveOrGenerateWalletKey, resolvePaymentChain, WALLET_FILE } from "./auth.js";
+import { resolveOrGenerateWalletKey, WALLET_FILE } from "./auth.js";
 import { BalanceMonitor } from "./balance.js";
 import { getSolanaAddress } from "./wallet.js";
 import { getStats } from "./stats.js";
