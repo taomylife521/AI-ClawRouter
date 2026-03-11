@@ -102,6 +102,25 @@ Generate images directly from chat with `/imagegen`:
 
 Default model: `nano-banana`. Images are returned as hosted URLs for compatibility with Telegram, Discord, and other clients.
 
+## ✏️ Image Editing (img2img)
+
+Edit existing images with `/img2img` — pass a local file and describe what to change:
+
+```
+/img2img --image ~/photo.png change the background to a starry sky
+/img2img --image ./cat.jpg --mask ./mask.png remove the background
+/img2img --image /tmp/portrait.png --size 1536x1024 add a hat
+```
+
+| Option | Required | Description |
+| ------ | -------- | ----------- |
+| `--image <path>` | Yes | Local image file path (supports `~/`) |
+| `--mask <path>` | No | Mask image (white = area to edit) |
+| `--model <model>` | No | Model to use (default: `gpt-image-1`) |
+| `--size <WxH>` | No | Output size (default: `1024x1024`) |
+
+Supported model: `gpt-image-1` (OpenAI GPT Image 1, $0.02/image). ClawRouter reads the local file, converts it to base64, and sends it to BlockRun's `/v1/images/image2image` endpoint with automatic x402 payment.
+
 ---
 
 ## ⚡ How It Works

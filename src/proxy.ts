@@ -25,6 +25,7 @@ import type { AddressInfo } from "node:net";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { mkdir, writeFile, readFile, stat as fsStat } from "node:fs/promises";
+import { readFileSync, existsSync } from "node:fs";
 import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
@@ -1195,6 +1196,31 @@ async function proxyPartnerRequest(
       (req.url?.split("?")[0] ?? "").replace(/^\/v1\//, "").replace(/\//g, "_") || "unknown",
     service: "partner",
   }).catch(() => {});
+}
+
+/**
+ * Read a local image file and return it as a base64 data URI.
+ * Supports ~/ home directory expansion.
+ */
+function readImageFileAsDataUri(filePath: string): string {
+  const resolved = filePath.startsWith("~/")
+    ? join(homedir(), filePath.slice(2))
+    : filePath;
+
+  if (!existsSync(resolved)) {
+    throw new Error(`Image file not found: ${resolved}`);
+  }
+
+  const ext = resolved.split(".").pop()?.toLowerCase() ?? "png";
+  const mimeMap: Record<string, string> = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    webp: "image/webp",
+  };
+  const mime = mimeMap[ext] ?? "image/png";
+  const data = readFileSync(resolved);
+  return `data:${mime};base64,${data.toString("base64")}`;
 }
 
 /**
@@ -2435,6 +2461,197 @@ async function proxyRequest(
             res.end(
               JSON.stringify({
                 error: { message: `Image generation failed: ${errMsg}`, type: "image_error" },
+              }),
+            );
+          }
+        }
+        return;
+      }
+
+      // --- /img2img command: edit an image via BlockRun image2image API ---
+      if (lastContent.startsWith("/img2img")) {
+        const imgArgs = lastContent.slice("/img2img".length).trim();
+
+        let img2imgModel = "openai/gpt-image-1";
+        let img2imgSize = "1024x1024";
+        let imagePath: string | null = null;
+        let maskPath: string | null = null;
+        let img2imgPrompt = imgArgs;
+
+        const imageMatch = imgArgs.match(/--image\s+(\S+)/);
+        if (imageMatch) {
+          imagePath = imageMatch[1];
+          img2imgPrompt = img2imgPrompt.replace(/--image\s+\S+/, "").trim();
+        }
+
+        const maskMatch = imgArgs.match(/--mask\s+(\S+)/);
+        if (maskMatch) {
+          maskPath = maskMatch[1];
+          img2imgPrompt = img2imgPrompt.replace(/--mask\s+\S+/, "").trim();
+        }
+
+        const img2imgSizeMatch = imgArgs.match(/--size\s+(\d+x\d+)/);
+        if (img2imgSizeMatch) {
+          img2imgSize = img2imgSizeMatch[1];
+          img2imgPrompt = img2imgPrompt.replace(/--size\s+\d+x\d+/, "").trim();
+        }
+
+        const img2imgModelMatch = imgArgs.match(/--model\s+(\S+)/);
+        if (img2imgModelMatch) {
+          const raw = img2imgModelMatch[1];
+          const IMG2IMG_ALIASES: Record<string, string> = {
+            "gpt-image": "openai/gpt-image-1",
+            "gpt-image-1": "openai/gpt-image-1",
+          };
+          img2imgModel = IMG2IMG_ALIASES[raw] ?? raw;
+          img2imgPrompt = img2imgPrompt.replace(/--model\s+\S+/, "").trim();
+        }
+
+        const usageText = [
+          "Usage: /img2img --image <path> <prompt>",
+          "",
+          "Options:",
+          "  --image <path>   Source image path (required)",
+          "  --mask <path>    Mask image path (optional, white = area to edit)",
+          "  --model <model>  Model (default: gpt-image-1)",
+          "  --size <WxH>     Output size (default: 1024x1024)",
+          "",
+          "Models:",
+          "  gpt-image-1      OpenAI GPT Image 1 — $0.02/image",
+          "",
+          "Examples:",
+          "  /img2img --image ~/photo.png change background to starry sky",
+          "  /img2img --image ./cat.jpg --mask ./mask.png remove the background",
+          "  /img2img --image /tmp/portrait.png --size 1536x1024 add a hat",
+        ].join("\n");
+
+        const sendImg2ImgText = (text: string) => {
+          const completionId = `chatcmpl-img2img-${Date.now()}`;
+          const timestamp = Math.floor(Date.now() / 1000);
+          if (isStreaming) {
+            res.writeHead(200, {
+              "Content-Type": "text/event-stream",
+              "Cache-Control": "no-cache",
+              Connection: "keep-alive",
+            });
+            res.write(
+              `data: ${JSON.stringify({ id: completionId, object: "chat.completion.chunk", created: timestamp, model: "clawrouter/img2img", choices: [{ index: 0, delta: { role: "assistant", content: text }, finish_reason: null }] })}\n\n`,
+            );
+            res.write(
+              `data: ${JSON.stringify({ id: completionId, object: "chat.completion.chunk", created: timestamp, model: "clawrouter/img2img", choices: [{ index: 0, delta: {}, finish_reason: "stop" }] })}\n\n`,
+            );
+            res.write("data: [DONE]\n\n");
+            res.end();
+          } else {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(
+              JSON.stringify({
+                id: completionId,
+                object: "chat.completion",
+                created: timestamp,
+                model: "clawrouter/img2img",
+                choices: [
+                  { index: 0, message: { role: "assistant", content: text }, finish_reason: "stop" },
+                ],
+                usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+              }),
+            );
+          }
+        };
+
+        if (!imagePath || !img2imgPrompt) {
+          sendImg2ImgText(usageText);
+          return;
+        }
+
+        let imageDataUri: string;
+        let maskDataUri: string | undefined;
+        try {
+          imageDataUri = readImageFileAsDataUri(imagePath);
+          if (maskPath) maskDataUri = readImageFileAsDataUri(maskPath);
+        } catch (fileErr) {
+          const fileErrMsg = fileErr instanceof Error ? fileErr.message : String(fileErr);
+          sendImg2ImgText(`Failed to read image file: ${fileErrMsg}`);
+          return;
+        }
+
+        console.log(
+          `[ClawRouter] /img2img → ${img2imgModel} (${img2imgSize}): ${img2imgPrompt.slice(0, 80)}`,
+        );
+
+        try {
+          const img2imgBody = JSON.stringify({
+            model: img2imgModel,
+            prompt: img2imgPrompt,
+            image: imageDataUri,
+            ...(maskDataUri ? { mask: maskDataUri } : {}),
+            size: img2imgSize,
+            n: 1,
+          });
+
+          const img2imgResponse = await payFetch(
+            `${apiBase}/v1/images/image2image`,
+            {
+              method: "POST",
+              headers: { "content-type": "application/json", "user-agent": USER_AGENT },
+              body: img2imgBody,
+            },
+          );
+
+          const img2imgResult = (await img2imgResponse.json()) as {
+            created?: number;
+            data?: Array<{ url?: string; revised_prompt?: string }>;
+            error?: string | { message?: string };
+          };
+
+          let responseText: string;
+          if (!img2imgResponse.ok || img2imgResult.error) {
+            const errMsg =
+              typeof img2imgResult.error === "string"
+                ? img2imgResult.error
+                : ((img2imgResult.error as { message?: string })?.message ??
+                  `HTTP ${img2imgResponse.status}`);
+            responseText = `Image editing failed: ${errMsg}`;
+            console.log(`[ClawRouter] /img2img error: ${errMsg}`);
+          } else {
+            const images = img2imgResult.data ?? [];
+            if (images.length === 0) {
+              responseText = "Image editing returned no results.";
+            } else {
+              const lines: string[] = [];
+              for (const img of images) {
+                if (img.url) {
+                  if (img.url.startsWith("data:")) {
+                    try {
+                      const hostedUrl = await uploadDataUriToHost(img.url);
+                      lines.push(hostedUrl);
+                    } catch (uploadErr) {
+                      console.error(
+                        `[ClawRouter] /img2img: failed to upload data URI: ${uploadErr instanceof Error ? uploadErr.message : String(uploadErr)}`,
+                      );
+                      lines.push("Image edited but upload failed. Try again.");
+                    }
+                  } else {
+                    lines.push(img.url);
+                  }
+                }
+                if (img.revised_prompt) lines.push(`Revised prompt: ${img.revised_prompt}`);
+              }
+              lines.push("", `Model: ${img2imgModel} | Size: ${img2imgSize}`);
+              responseText = lines.join("\n");
+            }
+            console.log(`[ClawRouter] /img2img success: ${images.length} image(s)`);
+          }
+
+          sendImg2ImgText(responseText);
+        } catch (err) {
+          const errMsg = err instanceof Error ? err.message : String(err);
+          console.error(`[ClawRouter] /img2img error: ${errMsg}`);
+          if (!res.headersSent) {
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(
+              JSON.stringify({
+                error: { message: `Image editing failed: ${errMsg}`, type: "img2img_error" },
               }),
             );
           }
