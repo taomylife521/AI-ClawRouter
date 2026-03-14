@@ -357,6 +357,39 @@ npm test
 
 ---
 
+## 🦞 From the BlockRun Ecosystem
+
+<table>
+<tr>
+<td width="50%">
+
+### ⚡ ClawRouter
+**Smart LLM Router — 92% Cost Savings**
+
+You're here. 41+ models, <1ms routing, auto cost optimization.
+
+`curl -fsSL https://blockrun.ai/ClawRouter-update | bash`
+
+</td>
+<td width="50%">
+
+### 🦞 [SocialClaw](https://github.com/BlockRunAI/socialclaw)
+**X/Twitter Marketing Intelligence**
+
+Grow your X to 5M+ views in 3 months. Trend detection, audience insights, KOL discovery, engagement targets — 7 marketing workflows, all from your AI agent.
+
+`pip install blockrun-llm[solana]`
+
+[![GitHub](https://img.shields.io/github/stars/BlockRunAI/socialclaw?style=flat-square)](https://github.com/BlockRunAI/socialclaw)
+
+</td>
+</tr>
+</table>
+
+> **ClawRouter + SocialClaw together:** ClawRouter handles your LLM routing. SocialClaw uses that same infrastructure to pull real-time X/Twitter data and turn it into growth strategy. Same wallet, same payment layer, two superpowers.
+
+---
+
 ## 📚 More Resources
 
 | Resource                                               | Description              |
