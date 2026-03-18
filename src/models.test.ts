@@ -35,4 +35,10 @@ describe("resolveModelAlias", () => {
     expect(resolveModelAlias("openai/claude")).toBe("anthropic/claude-sonnet-4.6");
     expect(resolveModelAlias("openai/sonnet")).toBe("anthropic/claude-sonnet-4.6");
   });
+
+  it("redirects delisted grok-code-fast-1 IDs to deepseek", () => {
+    expect(resolveModelAlias("xai/grok-code-fast-1")).toBe("deepseek/deepseek-chat");
+    expect(resolveModelAlias("blockrun/xai/grok-code-fast-1")).toBe("deepseek/deepseek-chat");
+    expect(resolveModelAlias("grok-code-fast-1")).toBe("deepseek/deepseek-chat");
+  });
 });
