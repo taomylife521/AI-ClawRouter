@@ -127,6 +127,8 @@ Per-provider error state is tracked independently. If MiniMax is having a bad ho
 
 ### 6. Session Memory — Agents That Remember
 
+![Agents that remember without compounding cost — ClawRouter session journaling vs standard OpenClaw context compounding across turns](assets/blockrun-clawrouter-openclaw-session-memory-journaling-vs-context-compounding.png)
+
 OpenClaw sessions can be long-lived. ClawRouter maintains a session journal — extracting decisions, results, and context from each turn — and injects relevant history when the agent asks questions that reference earlier work.
 
 Less context repeated = fewer tokens = lower cost. Agents that need to recall earlier decisions don't need to carry the entire history in every prompt.
