@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateModelCost,
+  filterByExcludeList,
   filterByToolCalling,
   selectModel,
   type ModelPricing,
@@ -64,6 +65,27 @@ describe("filterByToolCalling", () => {
     const models = ["minimax/minimax-m2.5", "nvidia/gpt-oss-120b"];
     const filtered = filterByToolCalling(models, true, supportsToolCalling);
     expect(filtered).toEqual(models);
+  });
+});
+
+describe("filterByExcludeList", () => {
+  const chain = ["moonshot/kimi-k2.5", "deepseek/deepseek-chat", "anthropic/claude-sonnet-4.6"];
+
+  it("removes excluded models from chain", () => {
+    const excludeList = new Set(["deepseek/deepseek-chat"]);
+    const filtered = filterByExcludeList(chain, excludeList);
+    expect(filtered).toEqual(["moonshot/kimi-k2.5", "anthropic/claude-sonnet-4.6"]);
+  });
+
+  it("returns original chain if ALL models excluded (safety net)", () => {
+    const excludeList = new Set(chain);
+    const filtered = filterByExcludeList(chain, excludeList);
+    expect(filtered).toEqual(chain);
+  });
+
+  it("returns original chain for empty exclude set", () => {
+    const filtered = filterByExcludeList(chain, new Set());
+    expect(filtered).toEqual(chain);
   });
 });
 

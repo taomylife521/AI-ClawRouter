@@ -154,6 +154,17 @@ export function filterByVision(
 }
 
 /**
+ * Filter a model list to remove user-excluded models.
+ * When all models are excluded, returns the full list as a fallback
+ * (same safety pattern as filterByToolCalling/filterByVision).
+ */
+export function filterByExcludeList(models: string[], excludeList: Set<string>): string[] {
+  if (excludeList.size === 0) return models;
+  const filtered = models.filter((m) => !excludeList.has(m));
+  return filtered.length > 0 ? filtered : models;
+}
+
+/**
  * Get the fallback chain filtered by context length.
  * Only returns models that can handle the estimated total context.
  *
