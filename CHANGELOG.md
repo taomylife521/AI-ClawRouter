@@ -4,6 +4,22 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.84 — Mar 26, 2026
+
+### Fixed
+
+- **`/doctor` checks correct chain balance** — Previously always checked Base (EVM), showing $0.00 for Solana-funded wallets. Now calls `resolvePaymentChain()` and uses `SolanaBalanceMonitor` when on Solana. Shows active chain label and hints to run `/wallet solana` if balance is empty on Base.
+- **Strip thinking tokens from non-streaming responses** — Free models leaked `<think>...</think>` blocks in non-streaming responses. `stripThinkingTokens()` was only applied in the streaming path — now also runs on non-streaming JSON responses.
+- **Preserve OpenClaw channels on install/update** — `reinstall.sh` and `update.sh` now backup `~/.openclaw/credentials/` before `openclaw plugins install` and always restore after, preventing WhatsApp/Telegram channel disappearance.
+
+### Added
+
+- **Blog section in README** — 6 blog posts linked from the repo, including "11 Free AI Models, Zero Cost".
+- **BRCC ecosystem block** — Replaced SocialClaw with BRCC (BlockRun for Claude Code) in the README ecosystem section.
+- **`blockrun.ai/brcc-install` short link** — Redirect for BRCC install script.
+
+---
+
 ## v0.12.81 — Mar 25, 2026
 
 ### Added

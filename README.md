@@ -233,7 +233,7 @@ Edit existing images with `/img2img`:
 | openai/gpt-5.2-pro          |    $21.00 |    $168.00 |    $0.0945 | 400K    | reasoning, tools                  |
 | openai/gpt-5.4-pro          |    $30.00 |    $180.00 |    $0.1050 | 400K    | reasoning, tools                  |
 
-> **Free tier:** 11 NVIDIA models cost nothing — `/model free` points to nemotron-ultra-253b, or pick any free model directly (e.g., `/model nemotron`, `/model deepseek-free`, `/model devstral`).
+> **Free tier:** 11 models cost nothing — `/model free` points to nemotron-ultra-253b, or pick any free model directly (e.g., `/model nemotron`, `/model deepseek-free`, `/model devstral`).
 > **Best value:** `gpt-5-nano` and `gemini-2.5-flash-lite` deliver strong results at ~$0.0003/request.
 
 ---
@@ -459,7 +459,7 @@ ClawRouter is an open-source (MIT licensed) smart LLM router built for autonomou
 
 ### How much can ClawRouter save on LLM costs?
 
-ClawRouter's blended average cost is $2.05 per million tokens compared to $25/M for Claude Opus, representing 92% savings. Actual savings depend on your workload — simple queries are routed to budget models (as low as $0/request with NVIDIA free tier), while complex tasks get premium models.
+ClawRouter's blended average cost is $2.05 per million tokens compared to $25/M for Claude Opus, representing 92% savings. Actual savings depend on your workload — simple queries are routed to free models ($0/request), while complex tasks get premium models.
 
 ### How does ClawRouter compare to OpenRouter?
 

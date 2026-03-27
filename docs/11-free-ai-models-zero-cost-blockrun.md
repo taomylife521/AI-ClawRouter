@@ -273,4 +273,4 @@ Go build something.
 
 ---
 
-*Based on ClawRouter v0.12.81. Model availability may change with future releases. For the latest information, visit [blockrun.ai](https://blockrun.ai).*
+*Based on ClawRouter v0.12.84. Model availability may change with future releases. For the latest information, visit [blockrun.ai](https://blockrun.ai).*
