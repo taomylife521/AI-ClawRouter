@@ -63,6 +63,7 @@ import {
   isReasoningModel,
   supportsToolCalling,
   supportsVision,
+  getActivePromoPrice,
 } from "./models.js";
 import { logUsage, type UsageEntry } from "./logger.js";
 import { getStats, clearStats } from "./stats.js";
@@ -1216,7 +1217,12 @@ function buildModelPricing(): Map<string, ModelPricing> {
   const map = new Map<string, ModelPricing>();
   for (const m of BLOCKRUN_MODELS) {
     if (m.id === AUTO_MODEL) continue; // skip meta-model
-    map.set(m.id, { inputPrice: m.inputPrice, outputPrice: m.outputPrice });
+    const promoPrice = getActivePromoPrice(m);
+    map.set(m.id, {
+      inputPrice: m.inputPrice,
+      outputPrice: m.outputPrice,
+      ...(promoPrice !== undefined && { flatPrice: promoPrice }),
+    });
   }
   return map;
 }
@@ -1275,13 +1281,19 @@ function estimateAmount(
   const model = BLOCKRUN_MODELS.find((m) => m.id === modelId);
   if (!model) return undefined;
 
-  // Rough estimate: ~4 chars per token for input
-  const estimatedInputTokens = Math.ceil(bodyLength / 4);
-  const estimatedOutputTokens = maxTokens || model.maxOutput || 4096;
-
-  const costUsd =
-    (estimatedInputTokens / 1_000_000) * model.inputPrice +
-    (estimatedOutputTokens / 1_000_000) * model.outputPrice;
+  let costUsd: number;
+  const promoPrice = getActivePromoPrice(model);
+  if (promoPrice !== undefined) {
+    // Active promo: fixed cost per request, no token estimation needed
+    costUsd = promoPrice;
+  } else {
+    // Rough estimate: ~4 chars per token for input
+    const estimatedInputTokens = Math.ceil(bodyLength / 4);
+    const estimatedOutputTokens = maxTokens || model.maxOutput || 4096;
+    costUsd =
+      (estimatedInputTokens / 1_000_000) * model.inputPrice +
+      (estimatedOutputTokens / 1_000_000) * model.outputPrice;
+  }
 
   // Convert to USDC 6-decimal integer, add 20% buffer for estimation error
   // Minimum 1000 ($0.001) to match CDP Facilitator's enforced minimum payment

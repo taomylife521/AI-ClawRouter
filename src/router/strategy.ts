@@ -5,9 +5,51 @@
  * Default: RulesStrategy — identical to the original inline route() logic, <1ms.
  */
 
-import type { Tier, RoutingDecision, RouterStrategy, RouterOptions } from "./types.js";
+import type { Tier, TierConfig, Promotion, RoutingDecision, RouterStrategy, RouterOptions } from "./types.js";
 import { classifyByRules } from "./rules.js";
 import { selectModel } from "./selector.js";
+
+/**
+ * Apply active time-windowed promotions to tier configs.
+ * Returns a new tierConfigs object with promotion overrides merged in.
+ * Expired or not-yet-active promotions are ignored.
+ */
+function applyPromotions(
+  tierConfigs: Record<Tier, TierConfig>,
+  promotions: Promotion[] | undefined,
+  profile: "auto" | "eco" | "premium" | "agentic",
+  now: Date = new Date(),
+): Record<Tier, TierConfig> {
+  if (!promotions || promotions.length === 0) return tierConfigs;
+
+  let result = tierConfigs;
+  for (const promo of promotions) {
+    // Check time window
+    const start = new Date(promo.startDate);
+    const end = new Date(promo.endDate);
+    if (now < start || now >= end) continue;
+
+    // Check profile filter
+    if (promo.profiles && !promo.profiles.includes(profile)) continue;
+
+    // Shallow-clone on first mutation
+    if (result === tierConfigs) {
+      result = { ...tierConfigs };
+      for (const t of Object.keys(result) as Tier[]) {
+        result[t] = { ...result[t] };
+      }
+    }
+
+    // Merge overrides
+    for (const [tier, override] of Object.entries(promo.tierOverrides) as [Tier, Partial<TierConfig>][]) {
+      if (!result[tier]) continue;
+      if (override.primary) result[tier].primary = override.primary;
+      if (override.fallback) result[tier].fallback = override.fallback;
+    }
+  }
+
+  return result;
+}
 
 /**
  * Rules-based routing strategy.
@@ -58,6 +100,9 @@ export class RulesStrategy implements RouterStrategy {
       profileSuffix = useAgenticTiers ? ` | agentic${hasToolsInRequest ? " (tools)" : ""}` : "";
       profile = useAgenticTiers ? "agentic" : "auto";
     }
+
+    // Apply time-windowed promotions
+    tierConfigs = applyPromotions(tierConfigs, config.promotions, profile!);
 
     const agenticScoreValue = ruleResult.agenticScore;
 

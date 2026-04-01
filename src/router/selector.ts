@@ -10,6 +10,8 @@ import type { Tier, TierConfig, RoutingDecision } from "./types.js";
 export type ModelPricing = {
   inputPrice: number; // per 1M tokens
   outputPrice: number; // per 1M tokens
+  /** Active promo flat price per request (overrides token-based pricing when set) */
+  flatPrice?: number;
 };
 
 const BASELINE_MODEL_ID = "anthropic/claude-opus-4.6";
@@ -38,12 +40,16 @@ export function selectModel(
   const model = tierConfig.primary;
   const pricing = modelPricing.get(model);
 
-  // Defensive: guard against undefined price fields (not just undefined pricing)
-  const inputPrice = pricing?.inputPrice ?? 0;
-  const outputPrice = pricing?.outputPrice ?? 0;
-  const inputCost = (estimatedInputTokens / 1_000_000) * inputPrice;
-  const outputCost = (maxOutputTokens / 1_000_000) * outputPrice;
-  const costEstimate = inputCost + outputCost;
+  let costEstimate: number;
+  if (pricing?.flatPrice !== undefined) {
+    costEstimate = pricing.flatPrice;
+  } else {
+    const inputPrice = pricing?.inputPrice ?? 0;
+    const outputPrice = pricing?.outputPrice ?? 0;
+    costEstimate =
+      (estimatedInputTokens / 1_000_000) * inputPrice +
+      (maxOutputTokens / 1_000_000) * outputPrice;
+  }
 
   // Baseline: what Claude Opus 4.5 would cost (the premium reference)
   const opusPricing = modelPricing.get(BASELINE_MODEL_ID);
@@ -100,16 +106,22 @@ export function calculateModelCost(
 ): { costEstimate: number; baselineCost: number; savings: number } {
   const pricing = modelPricing.get(model);
 
-  // Defensive: guard against undefined price fields (not just undefined pricing)
-  const inputPrice = pricing?.inputPrice ?? 0;
-  const outputPrice = pricing?.outputPrice ?? 0;
-  const inputCost = (estimatedInputTokens / 1_000_000) * inputPrice;
-  const outputCost = (maxOutputTokens / 1_000_000) * outputPrice;
-  // Include server margin + minimum payment to match actual x402 charge
-  const costEstimate = Math.max(
-    (inputCost + outputCost) * (1 + SERVER_MARGIN_PERCENT / 100),
-    MIN_PAYMENT_USD,
-  );
+  let costEstimate: number;
+  if (pricing?.flatPrice !== undefined) {
+    // Active promo: fixed cost per request
+    costEstimate = Math.max(pricing.flatPrice * (1 + SERVER_MARGIN_PERCENT / 100), MIN_PAYMENT_USD);
+  } else {
+    // Defensive: guard against undefined price fields (not just undefined pricing)
+    const inputPrice = pricing?.inputPrice ?? 0;
+    const outputPrice = pricing?.outputPrice ?? 0;
+    const inputCost = (estimatedInputTokens / 1_000_000) * inputPrice;
+    const outputCost = (maxOutputTokens / 1_000_000) * outputPrice;
+    // Include server margin + minimum payment to match actual x402 charge
+    costEstimate = Math.max(
+      (inputCost + outputCost) * (1 + SERVER_MARGIN_PERCENT / 100),
+      MIN_PAYMENT_USD,
+    );
+  }
 
   // Baseline: what Claude Opus 4.5 would cost (the premium reference)
   const opusPricing = modelPricing.get(BASELINE_MODEL_ID);

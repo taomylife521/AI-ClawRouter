@@ -104,6 +104,23 @@ export type OverridesConfig = {
   agenticMode?: boolean;
 };
 
+/**
+ * Time-windowed promotion that temporarily overrides tier routing.
+ * Active promotions are auto-applied; expired ones are ignored at runtime.
+ */
+export type Promotion = {
+  /** Human-readable label (e.g. "GLM-5 Launch Promo") */
+  name: string;
+  /** ISO date string, promotion starts (inclusive). e.g. "2026-04-01" */
+  startDate: string;
+  /** ISO date string, promotion ends (exclusive). e.g. "2026-04-15" */
+  endDate: string;
+  /** Partial tier overrides — merged into the active tier configs (primary/fallback) */
+  tierOverrides: Partial<Record<Tier, Partial<TierConfig>>>;
+  /** Which profiles this applies to. Default: all profiles. */
+  profiles?: Array<"auto" | "eco" | "premium" | "agentic">;
+};
+
 export type RoutingConfig = {
   version: string;
   classifier: ClassifierConfig;
@@ -115,5 +132,7 @@ export type RoutingConfig = {
   ecoTiers?: Record<Tier, TierConfig>;
   /** Tier configs for premium profile - best quality (blockrun/premium) */
   premiumTiers?: Record<Tier, TierConfig>;
+  /** Time-windowed promotions that temporarily override tier routing */
+  promotions?: Promotion[];
   overrides: OverridesConfig;
 };

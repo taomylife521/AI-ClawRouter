@@ -196,6 +196,15 @@ type BlockRunModel = {
   deprecated?: boolean;
   /** Model ID to route to when this model is deprecated */
   fallbackModel?: string;
+  /** Time-limited promotional pricing — auto-expires after endDate */
+  promo?: {
+    /** Flat price per request in USD (replaces token-based pricing) */
+    flatPrice: number;
+    /** ISO date, promo starts (inclusive). e.g. "2026-04-01" */
+    startDate: string;
+    /** ISO date, promo ends (exclusive). e.g. "2026-04-15" */
+    endDate: string;
+  };
 };
 
 export const BLOCKRUN_MODELS: BlockRunModel[] = [
@@ -867,6 +876,7 @@ export const BLOCKRUN_MODELS: BlockRunModel[] = [
     contextWindow: 200000,
     maxOutput: 128000,
     toolCalling: true,
+    promo: { flatPrice: 0.001, startDate: "2026-04-01", endDate: "2026-04-15" },
   },
   {
     id: "zai/glm-5-turbo",
@@ -879,6 +889,20 @@ export const BLOCKRUN_MODELS: BlockRunModel[] = [
     toolCalling: true,
   },
 ];
+
+/**
+ * Get the active flat promo price for a model, or undefined if no promo / expired.
+ */
+export function getActivePromoPrice(
+  model: BlockRunModel,
+  now: Date = new Date(),
+): number | undefined {
+  if (!model.promo) return undefined;
+  const start = new Date(model.promo.startDate);
+  const end = new Date(model.promo.endDate);
+  if (now >= start && now < end) return model.promo.flatPrice;
+  return undefined;
+}
 
 /**
  * Convert BlockRun model definitions to OpenClaw ModelDefinitionConfig format.
