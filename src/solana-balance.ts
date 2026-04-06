@@ -125,12 +125,28 @@ export class SolanaBalanceMonitor {
     const mint = solAddress(SOLANA_USDC_MINT);
 
     // The public Solana RPC frequently returns empty token account lists even
-    // for funded wallets. Retry once on empty before accepting $0 as truth.
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const result = await this.fetchBalanceOnce(owner, mint);
-      if (result > 0n || attempt === 1) return result;
-      await new Promise((r) => setTimeout(r, 1_000));
+    // for funded wallets. Retry up to 3 times on empty/error before accepting $0.
+    // Rate-limited or flaky RPC calls should not silently zero out a funded wallet.
+    const MAX_ATTEMPTS = 3;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        const result = await this.fetchBalanceOnce(owner, mint);
+        if (result > 0n) return result;
+        // Got 0 — might be RPC returning empty for a funded wallet.
+        // Retry unless this is the last attempt.
+        if (attempt < MAX_ATTEMPTS - 1) {
+          await new Promise((r) => setTimeout(r, 1_500 * (attempt + 1)));
+        }
+      } catch (err) {
+        lastError = err;
+        if (attempt < MAX_ATTEMPTS - 1) {
+          await new Promise((r) => setTimeout(r, 1_500 * (attempt + 1)));
+        }
+      }
     }
+    // If all attempts threw, re-throw so callers can distinguish RPC failure from actual $0.
+    if (lastError !== undefined) throw lastError;
     return 0n;
   }
 

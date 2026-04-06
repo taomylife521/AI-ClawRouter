@@ -3493,9 +3493,18 @@ async function proxyRequest(
         (estimatedCostMicros * BigInt(Math.ceil(BALANCE_CHECK_BUFFER * 100))) / 100n;
 
       // Check balance before proceeding (using buffered amount)
-      const sufficiency = await balanceMonitor.checkSufficient(bufferedCostMicros);
+      // Wrap in try/catch: Solana RPC failures (timeouts, rate limits) should
+      // not silently downgrade the request — pass through optimistically instead.
+      let sufficiency: Awaited<ReturnType<typeof balanceMonitor.checkSufficient>> | null = null;
+      try {
+        sufficiency = await balanceMonitor.checkSufficient(bufferedCostMicros);
+      } catch (balanceErr) {
+        console.warn(
+          `[ClawRouter] Balance check failed (${balanceErr instanceof Error ? balanceErr.message : String(balanceErr)}) — proceeding optimistically`,
+        );
+      }
 
-      if (sufficiency.info.isEmpty || !sufficiency.sufficient) {
+      if (sufficiency && (sufficiency.info.isEmpty || !sufficiency.sufficient)) {
         // Wallet is empty or insufficient — fallback to free model
         const originalModel = modelId;
         console.log(
@@ -3508,17 +3517,23 @@ async function proxyRequest(
         parsed.model = toUpstreamModelId(FREE_MODEL);
         body = Buffer.from(JSON.stringify(parsed));
 
+        // Build fund instruction — include wallet address so user knows where to send
+        const walletAddr = sufficiency.info.walletAddress;
+        const fundHint = walletAddr
+          ? ` Send USDC to \`${walletAddr}\`.`
+          : " Run `/wallet` to see your address.";
+
         // Set notice to prepend to response so user knows about the fallback
         balanceFallbackNotice = sufficiency.info.isEmpty
-          ? `> **⚠️ Wallet empty** — using free model. Fund your wallet to use ${originalModel}.\n\n`
-          : `> **⚠️ Insufficient balance** (${sufficiency.info.balanceUSD}) — using free model instead of ${originalModel}.\n\n`;
+          ? `> **⚠️ Wallet empty** — using free model.${fundHint}\n\n`
+          : `> **⚠️ Insufficient balance** (${sufficiency.info.balanceUSD}) — using free model instead of ${originalModel}.${fundHint}\n\n`;
 
         // Notify about the fallback
         options.onLowBalance?.({
           balanceUSD: sufficiency.info.balanceUSD,
           walletAddress: sufficiency.info.walletAddress,
         });
-      } else if (sufficiency.info.isLow) {
+      } else if (sufficiency?.info.isLow) {
         // Balance is low but sufficient — warn and proceed
         options.onLowBalance?.({
           balanceUSD: sufficiency.info.balanceUSD,
