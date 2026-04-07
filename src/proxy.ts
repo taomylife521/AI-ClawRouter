@@ -3879,7 +3879,18 @@ async function proxyRequest(
     // Otherwise, just use the current model (no fallback for explicit model requests)
     let modelsToTry: string[];
     const excludeList = options.excludeModels ?? loadExcludeList();
-    if (routingDecision) {
+
+    // Short-circuit: if balance check already determined wallet is empty/insufficient,
+    // skip the entire routing chain (all paid models would 429 anyway) and go straight
+    // to the free model. This avoids 4-5 wasted x402 payment signature attempts.
+    // Only applies when balance check actually ran (not when skipBalanceCheck is set).
+    if (isFreeModel && routingDecision && !options.skipBalanceCheck) {
+      const freeFallback = pickFreeModel(excludeList) ?? FREE_MODEL;
+      modelsToTry = [freeFallback];
+      console.log(
+        `[ClawRouter] Wallet empty — skipping routing chain, using free model: ${freeFallback}`,
+      );
+    } else if (routingDecision) {
       // Estimate total context: input tokens (~4 chars per token) + max output tokens
       const estimatedInputTokens = Math.ceil(body.length / 4);
       const estimatedTotalTokens = estimatedInputTokens + maxTokens;
