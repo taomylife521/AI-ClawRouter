@@ -1170,25 +1170,26 @@ const plugin: OpenClawPluginDefinition = {
     // Must run before completion short-circuit so skills are available even on first install
     installSkillsToWorkspace(api.logger);
 
-    // Skip heavy initialization in completion mode — only completion script is needed
-    // Logging to stdout during completion pollutes the script and causes zsh errors
-    if (isCompletionMode()) {
-      api.registerProvider(blockrunProvider);
-      return;
-    }
-
-    // Guard provider/config registration against repeated register() calls.
-    // OpenClaw calls register() twice: first with activate=false (discovery),
-    // then with activate=true (real activation). Provider and config setup
-    // should only run once, but commands must register every time so they
-    // enter the global pluginCommands Map on the activate=true call.
+    // Guard against repeated register() calls within the same process.
+    // OpenClaw calls register() multiple times: discovery, activation, and per-session.
+    // All registration (providers, commands, proxy) should only happen once.
+    // Flag is set BEFORE completion mode check so completion calls don't leave
+    // the flag unset for the next non-completion call.
     const proc = process as NodeJS.Process & { __clawrouterRegistered?: boolean };
     const alreadyRegistered = !!proc.__clawrouterRegistered;
     proc.__clawrouterRegistered = true;
 
-    if (!alreadyRegistered) {
-      // Register BlockRun as a provider (sync — available immediately)
-      api.registerProvider(blockrunProvider);
+    // Skip heavy initialization in completion mode — only completion script is needed
+    // Logging to stdout during completion pollutes the script and causes zsh errors
+    if (isCompletionMode()) {
+      if (!alreadyRegistered) api.registerProvider(blockrunProvider);
+      return;
+    }
+
+    if (alreadyRegistered) return;
+
+    // Register BlockRun as a provider (sync — available immediately)
+    api.registerProvider(blockrunProvider);
 
       // Register native image and music generation providers so BlockRun models
       // appear in OpenClaw's /imagine and music generation UIs.
@@ -1238,12 +1239,9 @@ const plugin: OpenClawPluginDefinition = {
           `Failed to register partner tools: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
-    }
 
-    // Commands must register on every register() call — OpenClaw calls register()
-    // twice (activate=false then activate=true), and only the activate=true call
-    // writes commands into the global pluginCommands Map.
-    api.registerCommand({
+      // Register commands
+      api.registerCommand({
       name: "partners",
       description: "List available partner APIs and pricing",
       acceptsArgs: false,
@@ -1288,9 +1286,6 @@ const plugin: OpenClawPluginDefinition = {
     api.registerCommand(createStatsCommand());
     api.registerCommand(createExcludeCommand());
     api.logger.info("Commands registered: /wallet, /blockrun, /stats, /exclude");
-
-    // Everything below (service, proxy, wallet) should only run once
-    if (alreadyRegistered) return;
 
     // Register a service with stop() for cleanup on gateway shutdown
     // This prevents EADDRINUSE when the gateway restarts
@@ -1351,14 +1346,39 @@ const plugin: OpenClawPluginDefinition = {
     // CRITICAL: Do NOT await here - this was blocking model selection UI for 3+ seconds
     // causing Chandler's "infinite loop" issue where model selection never finishes
     // Note: startProxyInBackground calls resolveOrGenerateWalletKey internally
-    startProxyInBackground(api)
-      .then(async () => {
-        // Proxy started successfully - verify health
-        const port = getProxyPort();
-        const healthy = await waitForProxyHealth(port, 15000);
-        if (!healthy) {
-          api.logger.warn(`Proxy health check timed out, commands may not work immediately`);
+    //
+    // Port probe: if another process already owns 8402, skip startup to avoid
+    // EADDRINUSE during gateway supervisor restarts (short-lived parallel processes).
+    const proxyPort = getProxyPort();
+    const portProbe = import("node:net").then(
+      (net) =>
+        new Promise<boolean>((resolve) => {
+          const sock = net.connect({ host: "127.0.0.1", port: proxyPort }, () => {
+            sock.destroy();
+            resolve(true); // port is already in use
+          });
+          sock.on("error", () => resolve(false)); // port is free
+          sock.setTimeout(500, () => {
+            sock.destroy();
+            resolve(false);
+          });
+        }),
+    );
+    portProbe
+      .then((portInUse) => {
+        if (portInUse) {
+          api.logger.info(
+            `Port ${proxyPort} already in use — skipping proxy startup (another instance running)`,
+          );
+          return;
         }
+        return startProxyInBackground(api).then(async () => {
+          const port = getProxyPort();
+          const healthy = await waitForProxyHealth(port, 15000);
+          if (!healthy) {
+            api.logger.warn(`Proxy health check timed out, commands may not work immediately`);
+          }
+        });
       })
       .catch((err) => {
         api.logger.error(
