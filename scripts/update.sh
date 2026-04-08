@@ -417,6 +417,40 @@ if [ -d "$PLUGIN_DIR" ] && [ -f "$PLUGIN_DIR/package.json" ]; then
 fi
 
 # ── Step 5: Verify wallet survived ─────────────────────────────
+# ── Step 4d: Post-install duplicate cleanup ──────────────────────
+# openclaw plugins install writes plugins.entries.ClawRouter (PascalCase, from
+# plugin name) AND plugins.installs.clawrouter (lowercase, from plugin id).
+# The extensions/ directory scan also discovers the plugin by id.
+# Having both entries + directory causes "duplicate plugin" warnings.
+# Fix: keep only the installs record (used by OpenClaw's matchInstalledPlugin),
+# remove the entries record that duplicates it.
+echo "→ Cleaning duplicate plugin entries..."
+node -e "
+const fs = require('fs');
+const configPath = '$CONFIG_PATH';
+if (!fs.existsSync(configPath)) process.exit(0);
+try {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  let changed = false;
+  // Remove entries that duplicate the installs record
+  for (const key of ['clawrouter', 'ClawRouter', '@blockrun/clawrouter']) {
+    if (config?.plugins?.entries?.[key]) {
+      delete config.plugins.entries[key];
+      changed = true;
+      console.log('  Removed duplicate plugins.entries.' + key);
+    }
+  }
+  if (changed) {
+    const tmp = configPath + '.tmp.' + process.pid;
+    fs.writeFileSync(tmp, JSON.stringify(config, null, 2));
+    fs.renameSync(tmp, configPath);
+    console.log('  ✓ Duplicate entries cleaned');
+  } else {
+    console.log('  ✓ No duplicates found');
+  }
+} catch (e) { console.log('  Skipped: ' + e.message); }
+"
+
 echo ""
 echo "→ Verifying wallet integrity..."
 
