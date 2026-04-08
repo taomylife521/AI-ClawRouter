@@ -204,9 +204,11 @@ try {
   process.exit(0);
 }
 
-// Clean plugin entries
-if (c.plugins?.entries?.clawrouter) delete c.plugins.entries.clawrouter;
-if (c.plugins?.installs?.clawrouter) delete c.plugins.installs.clawrouter;
+// Clean plugin entries (all case variants to prevent duplicate plugin warnings)
+for (const key of ['clawrouter', 'ClawRouter', '@blockrun/clawrouter']) {
+  if (c.plugins?.entries?.[key]) delete c.plugins.entries[key];
+  if (c.plugins?.installs?.[key]) delete c.plugins.installs[key];
+}
 
 // Clean plugins.allow — remove clawrouter (will be re-added after install)
 // and strip any non-bundled plugin names that don't exist (e.g. "wallet" added

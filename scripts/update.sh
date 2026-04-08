@@ -213,12 +213,12 @@ try {
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   let changed = false;
 
-  // Remove stale plugin entry
+  // Remove stale plugin entries (check all case variants)
   const entries = config?.plugins?.entries;
-  if (entries && entries.clawrouter) {
-    delete entries.clawrouter;
-    changed = true;
-    console.log('  Removed stale plugin entry');
+  const installs = config?.plugins?.installs;
+  for (const key of ['clawrouter', 'ClawRouter', '@blockrun/clawrouter']) {
+    if (entries?.[key]) { delete entries[key]; changed = true; console.log('  Removed plugins.entries.' + key); }
+    if (installs?.[key]) { delete installs[key]; changed = true; console.log('  Removed plugins.installs.' + key); }
   }
 
   // Clean plugins.allow — remove clawrouter (re-added later) and any stale bare
