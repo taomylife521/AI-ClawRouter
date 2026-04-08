@@ -1041,59 +1041,56 @@ function createWalletCommand(api?: OpenClawPluginApi): OpenClawPluginCommandDefi
         }
       }
 
-      // Default: show wallet status
-      let evmBalanceText: string;
-      try {
-        const monitor = new BalanceMonitor(address);
-        const balance = await monitor.checkBalance();
-        evmBalanceText = `Balance: ${balance.balanceUSD}`;
-      } catch {
-        evmBalanceText = "Balance: (could not check)";
-      }
+      // Default: show wallet status — run all checks in parallel for speed
+      const evmBalancePromise = (async () => {
+        try {
+          const monitor = new BalanceMonitor(address!);
+          const balance = await monitor.checkBalance();
+          return `Balance: ${balance.balanceUSD}`;
+        } catch {
+          return "Balance: (could not check)";
+        }
+      })();
 
-      // Check for Solana wallet
-      let solanaSection = "";
-      try {
-        if (existsSync(MNEMONIC_FILE)) {
+      const solanaPromise = (async () => {
+        try {
+          if (!existsSync(MNEMONIC_FILE)) return "";
           const { deriveSolanaKeyBytes } = await import("./wallet.js");
           const mnemonic = readTextFileSync(MNEMONIC_FILE).trim();
-          if (mnemonic) {
-            const solKeyBytes = deriveSolanaKeyBytes(mnemonic);
-            const { createKeyPairSignerFromPrivateKeyBytes } = await import("@solana/kit");
-            const signer = await createKeyPairSignerFromPrivateKeyBytes(solKeyBytes);
-            const solAddr = signer.address;
+          if (!mnemonic) return "";
+          const solKeyBytes = deriveSolanaKeyBytes(mnemonic);
+          const { createKeyPairSignerFromPrivateKeyBytes } = await import("@solana/kit");
+          const signer = await createKeyPairSignerFromPrivateKeyBytes(solKeyBytes);
+          const solAddr = signer.address;
 
-            let solBalanceText = "Balance: (checking...)";
-            try {
-              const { SolanaBalanceMonitor } = await import("./solana-balance.js");
-              const solMonitor = new SolanaBalanceMonitor(solAddr);
-              const solBalance = await solMonitor.checkBalance();
-              solBalanceText = `Balance: ${solBalance.balanceUSD}`;
-            } catch {
-              solBalanceText = "Balance: (could not check)";
-            }
-
-            solanaSection = [
-              "",
-              "**Solana:**",
-              `  Address: \`${solAddr}\``,
-              `  ${solBalanceText}`,
-              `  Fund (USDC only): https://solscan.io/account/${solAddr}`,
-            ].join("\n");
+          let solBalanceText = "Balance: (could not check)";
+          try {
+            const { SolanaBalanceMonitor } = await import("./solana-balance.js");
+            const solMonitor = new SolanaBalanceMonitor(solAddr);
+            const solBalance = await solMonitor.checkBalance();
+            solBalanceText = `Balance: ${solBalance.balanceUSD}`;
+          } catch {
+            // keep default
           }
+
+          return [
+            "",
+            "**Solana:**",
+            `  Address: \`${solAddr}\``,
+            `  ${solBalanceText}`,
+            `  Fund (USDC only): https://solscan.io/account/${solAddr}`,
+          ].join("\n");
+        } catch {
+          return "";
         }
-      } catch {
-        // No Solana wallet - that's fine
-      }
+      })();
 
-      // Show current chain selection
-      const currentChain = await resolvePaymentChain();
+      const chainPromise = resolvePaymentChain();
 
-      // Usage summary (last 7 days) — shows all models including openai/, anthropic/, etc.
-      let usageSection = "";
-      try {
-        const stats = await getStats(7);
-        if (stats.totalRequests > 0) {
+      const usagePromise = (async () => {
+        try {
+          const stats = await getStats(7);
+          if (stats.totalRequests === 0) return "";
           const modelLines = Object.entries(stats.byModel)
             .sort((a, b) => b[1].count - a[1].count)
             .slice(0, 8)
@@ -1101,8 +1098,7 @@ function createWalletCommand(api?: OpenClawPluginApi): OpenClawPluginCommandDefi
               ([model, data]) =>
                 `  ${model.length > 30 ? model.slice(0, 27) + "..." : model}  ${data.count} reqs  $${data.cost.toFixed(4)}`,
             );
-
-          usageSection = [
+          return [
             "",
             `**Usage (${stats.period}):**`,
             `  Total: ${stats.totalRequests} requests, $${stats.totalCost.toFixed(4)} spent`,
@@ -1115,10 +1111,17 @@ function createWalletCommand(api?: OpenClawPluginApi): OpenClawPluginCommandDefi
           ]
             .filter(Boolean)
             .join("\n");
+        } catch {
+          return "";
         }
-      } catch {
-        // Stats not available — skip
-      }
+      })();
+
+      const [evmBalanceText, solanaSection, currentChain, usageSection] = await Promise.all([
+        evmBalancePromise,
+        solanaPromise,
+        chainPromise,
+        usagePromise,
+      ]);
 
       return {
         text: [
