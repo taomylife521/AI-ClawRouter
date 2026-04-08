@@ -1212,11 +1212,11 @@ export const DEFAULT_ROUTING_CONFIG: RoutingConfig = {
   // Time-windowed promotions — auto-applied when active, ignored when expired
   promotions: [
     {
-      name: "GLM-5 Launch Promo ($0.001 flat)",
+      name: "GLM-5.1 Launch Promo ($0.001 flat)",
       startDate: "2026-04-01",
       endDate: "2026-04-15",
       tierOverrides: {
-        SIMPLE: { primary: "zai/glm-5" },
+        SIMPLE: { primary: "zai/glm-5.1" },
       },
       profiles: ["auto"], // only auto profile — eco stays free, premium stays premium
     },
