@@ -655,6 +655,33 @@ try {
 }
 "
 
+# 6.3. Re-verify baseUrl after install (OpenClaw's async config persistence can overwrite it)
+echo "→ Verifying provider baseUrl (post-install)..."
+node -e "
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
+function atomicWrite(filePath, data) {
+  const tmpPath = filePath + '.tmp.' + process.pid;
+  fs.writeFileSync(tmpPath, data);
+  fs.renameSync(tmpPath, filePath);
+}
+const configPath = path.join(os.homedir(), '.openclaw', 'openclaw.json');
+if (!fs.existsSync(configPath)) { console.log('  No config, skipping'); process.exit(0); }
+try {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const provider = config?.models?.providers?.blockrun;
+  if (!provider) { console.log('  No blockrun provider, skipping'); process.exit(0); }
+  let changed = false;
+  const expected = 'http://127.0.0.1:8402/v1';
+  if (provider.baseUrl !== expected) { provider.baseUrl = expected; changed = true; console.log('  Fixed baseUrl → ' + expected); }
+  if (!provider.apiKey) { provider.apiKey = 'x402-proxy-handles-auth'; changed = true; console.log('  Fixed missing apiKey'); }
+  if (changed) {
+    atomicWrite(configPath, JSON.stringify(config, null, 2));
+  } else { console.log('  ✓ Provider config OK'); }
+} catch (err) { console.log('  Skipped: ' + err.message); }
+"
+
 # 7. Add plugin to allow list (done AFTER install so plugin files exist for validation)
 echo "→ Adding to plugins allow list..."
 node -e "

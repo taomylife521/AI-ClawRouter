@@ -9,6 +9,7 @@
 import type { ProviderPlugin } from "./types.js";
 import { buildProviderModels } from "./models.js";
 import type { ProxyHandle } from "./proxy.js";
+import { getProxyPort } from "./proxy.js";
 
 /**
  * State for the running proxy (set when the plugin activates).
@@ -36,14 +37,17 @@ export const blockrunProvider: ProviderPlugin = {
   aliases: ["br"],
   envVars: ["BLOCKRUN_WALLET_KEY"],
 
-  // Model definitions — dynamically set to proxy URL
+  // Model definitions — always point to local proxy URL.
+  // Even before the proxy starts, we return the local URL so that OpenClaw's
+  // async config persistence writes the correct baseUrl to openclaw.json.
   get models() {
-    if (!activeProxy) {
-      // Fallback: point to BlockRun API directly (won't handle x402, but
-      // allows config loading before proxy starts)
-      return buildProviderModels("https://blockrun.ai/api");
+    if (activeProxy) {
+      return buildProviderModels(activeProxy.baseUrl);
     }
-    return buildProviderModels(activeProxy.baseUrl);
+    // Proxy not started yet — use the configured port so OpenClaw persists
+    // the correct local URL, not the remote blockrun.ai fallback.
+    const port = getProxyPort();
+    return buildProviderModels(`http://127.0.0.1:${port}/v1`);
   },
 
   // No auth required — the x402 proxy handles wallet-based payments internally.

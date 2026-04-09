@@ -458,6 +458,30 @@ try {
 } catch (e) { console.log('  Skipped: ' + e.message); }
 "
 
+# ── Step 4e: Re-verify baseUrl after install ─────────────────────
+# OpenClaw's plugin install can overwrite openclaw.json and drop the baseUrl
+# that step 3b set. Re-apply it unconditionally after install.
+echo "→ Verifying provider baseUrl (post-install)..."
+node -e "
+const fs = require('fs');
+const configPath = '$CONFIG_PATH';
+if (!fs.existsSync(configPath)) { console.log('  No config, skipping'); process.exit(0); }
+try {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const provider = config?.models?.providers?.blockrun;
+  if (!provider) { console.log('  No blockrun provider, skipping'); process.exit(0); }
+  let changed = false;
+  const expected = 'http://127.0.0.1:8402/v1';
+  if (provider.baseUrl !== expected) { provider.baseUrl = expected; changed = true; console.log('  Fixed baseUrl → ' + expected); }
+  if (!provider.apiKey) { provider.apiKey = 'x402-proxy-handles-auth'; changed = true; console.log('  Fixed missing apiKey'); }
+  if (changed) {
+    const tmp = configPath + '.tmp.' + process.pid;
+    fs.writeFileSync(tmp, JSON.stringify(config, null, 2));
+    fs.renameSync(tmp, configPath);
+  } else { console.log('  ✓ Provider config OK'); }
+} catch (err) { console.log('  Skipped: ' + err.message); }
+"
+
 echo ""
 echo "→ Verifying wallet integrity..."
 

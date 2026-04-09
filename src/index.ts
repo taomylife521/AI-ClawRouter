@@ -387,6 +387,9 @@ function injectModelsConfig(logger: { info: (msg: string) => void }): void {
     "free/nemotron-3-super-120b",
     "free/nemotron-super-49b",
     "free/glm-4.7",
+    "zai/glm-5",
+    "zai/glm-5.1",
+    "zai/glm-5-turbo",
   ];
   if (!defaults.models || typeof defaults.models !== "object" || Array.isArray(defaults.models)) {
     defaults.models = {};
