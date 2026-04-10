@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  BLOCKRUN_EXA_PROVIDER_ID,
-  blockrunExaWebSearchProvider,
-} from "./web-search-provider.js";
+import { BLOCKRUN_EXA_PROVIDER_ID, blockrunExaWebSearchProvider } from "./web-search-provider.js";
 
 describe("blockrun-exa web search provider", () => {
   afterEach(() => {

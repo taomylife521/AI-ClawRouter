@@ -80,7 +80,10 @@ function resolveDescription(entry: SearchResultRecord): string {
 
   const highlights = entry.highlights;
   if (Array.isArray(highlights)) {
-    const text = highlights.map(readString).filter((item): item is string => Boolean(item)).join("\n");
+    const text = highlights
+      .map(readString)
+      .filter((item): item is string => Boolean(item))
+      .join("\n");
     if (text) return text;
   }
 
@@ -89,20 +92,20 @@ function resolveDescription(entry: SearchResultRecord): string {
 
 function extractResults(payload: unknown): SearchResultRecord[] {
   if (Array.isArray(payload)) {
-    return payload
-      .map(asObject)
-      .filter((entry): entry is SearchResultRecord => Boolean(entry));
+    return payload.map(asObject).filter((entry): entry is SearchResultRecord => Boolean(entry));
   }
 
   const direct = asObject(payload);
   if (!direct) return [];
 
-  const candidates = [direct.results, asObject(direct.data)?.results, asObject(direct.response)?.results];
+  const candidates = [
+    direct.results,
+    asObject(direct.data)?.results,
+    asObject(direct.response)?.results,
+  ];
   for (const candidate of candidates) {
     if (!Array.isArray(candidate)) continue;
-    return candidate
-      .map(asObject)
-      .filter((entry): entry is SearchResultRecord => Boolean(entry));
+    return candidate.map(asObject).filter((entry): entry is SearchResultRecord => Boolean(entry));
   }
 
   return [];
@@ -171,10 +174,7 @@ async function runBlockrunExaSearch(args: Record<string, unknown>): Promise<unkn
     return errorPayload("missing_query", "web_search (blockrun-exa) requires a non-empty query.");
   }
 
-  const count = Math.min(
-    readPositiveInteger(args.count) ?? DEFAULT_RESULT_COUNT,
-    MAX_RESULT_COUNT,
-  );
+  const count = Math.min(readPositiveInteger(args.count) ?? DEFAULT_RESULT_COUNT, MAX_RESULT_COUNT);
   const category = readString(args.category);
   const includeDomains =
     readStringList(args.include_domains) ??
@@ -249,7 +249,8 @@ export const blockrunExaWebSearchProvider: WebSearchProviderPlugin = {
         },
         category: {
           type: "string",
-          description: "Optional Exa category filter such as news, company, github, pdf, or research paper.",
+          description:
+            "Optional Exa category filter such as news, company, github, pdf, or research paper.",
         },
         domains: {
           type: "array",
