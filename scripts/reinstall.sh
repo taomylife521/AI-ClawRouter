@@ -534,7 +534,7 @@ if [ ! -f "$DIST_PATH" ]; then
   fi
   if [ ! -f "$DIST_PATH" ]; then
     echo "  ❌ Installation failed - dist/index.js still missing"
-    echo "  Please report this issue at https://github.com/BlockRunAI/ClawRouter/issues"
+    echo "  See https://blockrun.ai/clawrouter.md for troubleshooting"
     exit 1
   fi
 else
