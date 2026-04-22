@@ -7,7 +7,7 @@
  *   - Returns a valid response when all assistant messages have reasoning_content
  *
  * This exercises the ACTUAL bug path:
- *   ClawRouter normalizes messages → upstream accepts → 200 OK
+ *   XClawRouter normalizes messages → upstream accepts → 200 OK
  *
  * Before the fix, turn 2 would fail:
  *   - kimi returns 400 (reasoning_content missing on plain assistant message)

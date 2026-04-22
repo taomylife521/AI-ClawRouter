@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="assets/banner.png" alt="ClawRouter Banner" width="600">
+<img src="assets/banner.png" alt="XClawRouter Banner" width="600">
 
 <h1>The LLM router built for autonomous agents</h1>
 
 <p>Agents can't sign up for accounts. Agents can't enter credit cards.<br>
 Agents can only sign transactions.<br><br>
-<strong>ClawRouter is the only LLM router that lets agents operate independently.</strong></p>
+<strong>XClawRouter is the only LLM router that lets agents operate independently.</strong></p>
 
 <br>
 
@@ -16,10 +16,10 @@ Agents can only sign transactions.<br><br>
 <img src="https://img.shields.io/badge/💰_x402_USDC-purple?style=for-the-badge" alt="x402 USDC">&nbsp;
 <img src="https://img.shields.io/badge/🔓_Open_Source-green?style=for-the-badge" alt="Open source">
 
-[![npm version](https://img.shields.io/npm/v/@blockrun/clawrouter.svg?style=flat-square&color=cb3837)](https://npmjs.com/package/@blockrun/clawrouter)
-[![npm downloads](https://img.shields.io/npm/dm/@blockrun/clawrouter.svg?style=flat-square&color=blue)](https://npmjs.com/package/@blockrun/clawrouter)
-[![GitHub stars](https://img.shields.io/github/stars/BlockRunAI/ClawRouter?style=flat-square)](https://github.com/BlockRunAI/ClawRouter)
-[![CI](https://img.shields.io/github/actions/workflow/status/BlockRunAI/ClawRouter/ci.yml?style=flat-square&label=CI)](https://github.com/BlockRunAI/ClawRouter/actions)
+[![npm version](https://img.shields.io/npm/v/@blockrun/xclawrouter.svg?style=flat-square&color=cb3837)](https://npmjs.com/package/@blockrun/xclawrouter)
+[![npm downloads](https://img.shields.io/npm/dm/@blockrun/xclawrouter.svg?style=flat-square&color=blue)](https://npmjs.com/package/@blockrun/xclawrouter)
+[![GitHub stars](https://img.shields.io/github/stars/BlockRunAI/XClawRouter?style=flat-square)](https://github.com/BlockRunAI/XClawRouter)
+[![CI](https://img.shields.io/github/actions/workflow/status/BlockRunAI/XClawRouter/ci.yml?style=flat-square&label=CI)](https://github.com/BlockRunAI/XClawRouter/actions)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
@@ -32,17 +32,17 @@ Agents can only sign transactions.<br><br>
 
 </div>
 
-> **ClawRouter** is an open-source smart LLM router that reduces AI API costs by up to 92%. It analyzes each request across 15 dimensions and routes to the cheapest capable model in under 1ms, entirely locally. ClawRouter is the only LLM router built for autonomous AI agents — it uses wallet signatures for authentication (no API keys) and USDC micropayments via the x402 protocol (no credit cards). 55+ models from OpenAI, Anthropic, Google, xAI, DeepSeek, and more. MIT licensed.
+> **XClawRouter** is an open-source smart LLM router that reduces AI API costs by up to 92%. It analyzes each request across 15 dimensions and routes to the cheapest capable model in under 1ms, entirely locally. XClawRouter is the only LLM router built for autonomous AI agents — it uses wallet signatures for authentication (no API keys) and USDC micropayments via the x402 protocol (no credit cards). 55+ models from OpenAI, Anthropic, Google, xAI, DeepSeek, and more. MIT licensed.
 
 ---
 
-## Why ClawRouter exists
+## Why XClawRouter exists
 
 Every other LLM router was built for **human developers** — create an account, get an API key, pick a model from a dashboard, pay with a credit card.
 
 **Agents can't do any of that.**
 
-ClawRouter is built for the agent-first world:
+XClawRouter is built for the agent-first world:
 
 - **No accounts** — a wallet is generated locally, no signup
 - **No API keys** — your wallet signature IS authentication
@@ -56,7 +56,7 @@ This is the stack that lets agents operate autonomously: **x402 + USDC + local r
 
 ## How it compares
 
-|                  | OpenRouter        | LiteLLM          | Martian           | Portkey           | **ClawRouter**          |
+|                  | OpenRouter        | LiteLLM          | Martian           | Portkey           | **XClawRouter**          |
 | ---------------- | ----------------- | ---------------- | ----------------- | ----------------- | ----------------------- |
 | **Models**       | 200+              | 100+             | Smart routing     | Gateway           | **55+**                 |
 | **Routing**      | Manual selection  | Manual selection | Smart (closed)    | Observability     | **Smart (open source)** |
@@ -76,10 +76,10 @@ This is the stack that lets agents operate autonomously: **x402 + USDC + local r
 
 ### Option A — OpenClaw Agent
 
-[OpenClaw](https://openclaw.ai) is an AI coding agent. If you're using it, ClawRouter installs as a plugin:
+[OpenClaw](https://openclaw.ai) is an AI coding agent. If you're using it, XClawRouter installs as a plugin:
 
 ```bash
-curl -fsSL https://blockrun.ai/ClawRouter-update | bash
+curl -fsSL https://blockrun.ai/XClawRouter-update | bash
 openclaw gateway restart
 ```
 
@@ -89,12 +89,12 @@ Done. Smart routing (`blockrun/auto`) is now your default model.
 
 > **Using Claude Code?** Check out [BRCC](https://github.com/BlockRunAI/brcc) — it's purpose-built for Claude Code with the same smart routing and x402 payments.
 
-No OpenClaw required. ClawRouter runs as a local proxy on port 8402.
+No OpenClaw required. XClawRouter runs as a local proxy on port 8402.
 
 **1. Start the proxy**
 
 ```bash
-npx @blockrun/clawrouter
+npx @blockrun/xclawrouter
 ```
 
 **2. Fund your wallet**
@@ -109,7 +109,7 @@ Your wallet address is printed on first run. Send a few USDC on Base or Solana �
 
 ```yaml
 models:
-  - name: ClawRouter Auto
+  - name: XClawRouter Auto
     provider: openai
     model: blockrun/auto
     apiBase: http://localhost:8402/v1/
@@ -131,7 +131,7 @@ Both `provider: openai` and `provider: clawrouter` work — just make sure `apiB
 {
   "models": [
     {
-      "title": "ClawRouter Auto",
+      "title": "XClawRouter Auto",
       "provider": "openai",
       "model": "blockrun/auto",
       "apiBase": "http://localhost:8402/v1/",
@@ -357,7 +357,7 @@ USDC stays in your wallet until spent — non-custodial. Price is visible in the
 <tr>
 <td width="50%" align="center">
 <strong>Smart Routing in Action</strong><br><br>
-<img src="docs/clawrouter-savings.png" alt="ClawRouter savings" width="400">
+<img src="docs/clawrouter-savings.png" alt="XClawRouter savings" width="400">
 </td>
 <td width="50%" align="center">
 <strong>Telegram Integration</strong><br><br>
@@ -403,7 +403,7 @@ Exclusions persist across restarts (`~/.openclaw/blockrun/exclude-models.json`).
 **When things go wrong, run the doctor:**
 
 ```bash
-npx @blockrun/clawrouter doctor
+npx @blockrun/xclawrouter doctor
 ```
 
 This collects diagnostics and sends them to Claude Sonnet for AI-powered analysis:
@@ -432,14 +432,14 @@ The local proxy isn't running. Run `openclaw gateway restart` to fix.
 **Use Opus for complex issues:**
 
 ```bash
-npx @blockrun/clawrouter doctor opus
+npx @blockrun/xclawrouter doctor opus
 ```
 
 **Ask a specific question:**
 
 ```bash
-npx @blockrun/clawrouter doctor "why is my request failing?"
-npx @blockrun/clawrouter doctor opus "深度分析我的配置"
+npx @blockrun/xclawrouter doctor "why is my request failing?"
+npx @blockrun/xclawrouter doctor opus "深度分析我的配置"
 ```
 
 **Cost:** Sonnet ~$0.003 (default) | Opus ~$0.01
@@ -449,8 +449,8 @@ npx @blockrun/clawrouter doctor opus "深度分析我的配置"
 ## Development
 
 ```bash
-git clone https://github.com/BlockRunAI/ClawRouter.git
-cd ClawRouter
+git clone https://github.com/BlockRunAI/XClawRouter.git
+cd XClawRouter
 npm install
 npm run build
 npm test
@@ -476,13 +476,13 @@ npm test
 <tr>
 <td width="50%">
 
-### ⚡ ClawRouter
+### ⚡ XClawRouter
 
 **The LLM router built for autonomous agents**
 
 You're here. 55+ models, local smart routing, x402 USDC payments — the only stack that lets agents operate independently.
 
-`curl -fsSL https://blockrun.ai/ClawRouter-update | bash`
+`curl -fsSL https://blockrun.ai/XClawRouter-update | bash`
 
 </td>
 <td width="50%">
@@ -520,8 +520,8 @@ Run Claude Code with 50+ models, no rate limits, no Anthropic account, no phone 
 | Article                                                                                            | Topic                                                   |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | [11 Free AI Models, Zero Cost](docs/11-free-ai-models-zero-cost-blockrun.md)                       | How BlockRun gives developers top-tier LLMs for nothing |
-| [ClawRouter Cuts LLM API Costs 500×](docs/clawrouter-cuts-llm-api-costs-500x.md)                   | Deep dive into cost savings                             |
-| [ClawRouter vs OpenRouter](docs/clawrouter-vs-openrouter-llm-routing-comparison.md)                | Head-to-head comparison                                 |
+| [XClawRouter Cuts LLM API Costs 500×](docs/clawrouter-cuts-llm-api-costs-500x.md)                   | Deep dive into cost savings                             |
+| [XClawRouter vs OpenRouter](docs/clawrouter-vs-openrouter-llm-routing-comparison.md)                | Head-to-head comparison                                 |
 | [Smart LLM Router: 14-Dimension Classifier](docs/smart-llm-router-14-dimension-classifier.md)      | How the routing engine works                            |
 | [LLM Router Benchmark: 46 Models, Sub-1ms](docs/llm-router-benchmark-46-models-sub-1ms-routing.md) | Performance benchmarks                                  |
 | [Anthropic Cost Savings](docs/anthropic-cost-savings.md)                                           | Reducing Claude API spend                               |
@@ -530,29 +530,29 @@ Run Claude Code with 50+ models, no rate limits, no Anthropic account, no phone 
 
 ## Frequently Asked Questions
 
-### What is ClawRouter?
+### What is XClawRouter?
 
-ClawRouter is an open-source (MIT licensed) smart LLM router built for autonomous AI agents. It analyzes each request across 15 dimensions and routes to the cheapest capable model in under 1ms, entirely locally — no external API calls needed for routing decisions.
+XClawRouter is an open-source (MIT licensed) smart LLM router built for autonomous AI agents. It analyzes each request across 15 dimensions and routes to the cheapest capable model in under 1ms, entirely locally — no external API calls needed for routing decisions.
 
-### How much can ClawRouter save on LLM costs?
+### How much can XClawRouter save on LLM costs?
 
-ClawRouter's blended average cost is $2.05 per million tokens compared to $25/M for Claude Opus, representing 92% savings. Actual savings depend on your workload — simple queries are routed to free models ($0/request), while complex tasks get premium models.
+XClawRouter's blended average cost is $2.05 per million tokens compared to $25/M for Claude Opus, representing 92% savings. Actual savings depend on your workload — simple queries are routed to free models ($0/request), while complex tasks get premium models.
 
-### How does ClawRouter compare to OpenRouter?
+### How does XClawRouter compare to OpenRouter?
 
-ClawRouter is open source and runs locally. It uses wallet-based authentication (no API keys) and USDC per-request payments (no credit cards or subscriptions). OpenRouter requires an account, API key, and credit card. ClawRouter also features smart routing — it automatically picks the best model for each request, while OpenRouter requires manual model selection.
+XClawRouter is open source and runs locally. It uses wallet-based authentication (no API keys) and USDC per-request payments (no credit cards or subscriptions). OpenRouter requires an account, API key, and credit card. XClawRouter also features smart routing — it automatically picks the best model for each request, while OpenRouter requires manual model selection.
 
-### How does ClawRouter compare to LiteLLM?
+### How does XClawRouter compare to LiteLLM?
 
-Both are open source and run locally. But ClawRouter adds smart routing (automatic model selection), wallet-based auth, and USDC payments. LiteLLM requires you to bring your own API keys and manually choose models.
+Both are open source and run locally. But XClawRouter adds smart routing (automatic model selection), wallet-based auth, and USDC payments. LiteLLM requires you to bring your own API keys and manually choose models.
 
-### What agents does ClawRouter work with?
+### What agents does XClawRouter work with?
 
-ClawRouter works with any tool that makes OpenAI-compatible API calls — point it at `http://localhost:8402`. This includes continue.dev, Cursor, VS Code extensions, ElizaOS, and custom agents. It also integrates as a plugin with [OpenClaw](https://openclaw.ai) (an AI coding agent), which enables additional features like slash commands and usage reports.
+XClawRouter works with any tool that makes OpenAI-compatible API calls — point it at `http://localhost:8402`. This includes continue.dev, Cursor, VS Code extensions, ElizaOS, and custom agents. It also integrates as a plugin with [OpenClaw](https://openclaw.ai) (an AI coding agent), which enables additional features like slash commands and usage reports.
 
-### Is ClawRouter free?
+### Is XClawRouter free?
 
-ClawRouter itself is free and MIT licensed. You pay only for the LLM API calls routed through it — and 11 models (DeepSeek V3.2, Nemotron Ultra 253B, Mistral Large 675B, Llama 4 Maverick, and more) are completely free. Use `/model free` for Nemotron Ultra 253B, or pick any free model by name.
+XClawRouter itself is free and MIT licensed. You pay only for the LLM API calls routed through it — and 11 models (DeepSeek V3.2, Nemotron Ultra 253B, Mistral Large 675B, Llama 4 Maverick, and more) are completely free. Use `/model free` for Nemotron Ultra 253B, or pick any free model by name.
 
 ---
 
@@ -560,6 +560,6 @@ ClawRouter itself is free and MIT licensed. You pay only for the LLM API calls r
 
 **MIT License** · [BlockRun](https://blockrun.ai) — Agent-native AI infrastructure
 
-⭐ If ClawRouter powers your agents, consider starring the repo!
+⭐ If XClawRouter powers your agents, consider starring the repo!
 
 </div>

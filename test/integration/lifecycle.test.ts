@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { startTestProxy, stopTestProxy, getTestProxyUrl } from "./setup.js";
 
-describe("ClawRouter proxy lifecycle", () => {
+describe("XClawRouter proxy lifecycle", () => {
   beforeAll(async () => {
     await startTestProxy();
   });

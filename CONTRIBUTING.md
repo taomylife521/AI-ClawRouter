@@ -1,10 +1,10 @@
-# Contributing to ClawRouter
+# Contributing to XClawRouter
 
 ## Setup
 
 ```bash
-git clone https://github.com/BlockRunAI/ClawRouter
-cd ClawRouter
+git clone https://github.com/BlockRunAI/XClawRouter
+cd XClawRouter
 npm install
 npm run build
 ```

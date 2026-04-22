@@ -546,7 +546,7 @@ declare class ResponseCache {
 }
 
 /**
- * Balance Monitor for ClawRouter
+ * Balance Monitor for XClawRouter
  *
  * Monitors USDC balance on Base network with intelligent caching.
  * Provides pre-request balance checks to prevent failed payments.
@@ -961,35 +961,27 @@ type ProxyHandle = {
 declare function startProxy(options: ProxyOptions): Promise<ProxyHandle>;
 
 /**
- * BlockRun Auth Methods for OpenClaw
+ * XClawRouter wallet resolution.
  *
- * Provides wallet-based authentication for the BlockRun provider.
- * Operators configure their wallet private key, which is used to
- * sign x402 micropayments for LLM inference.
+ * XClawRouter delegates wallet state (keys, login, signing) to OKX's `onchainos`
+ * CLI via the OnchainOsAdapter. The legacy BIP-39 helpers below remain during
+ * the migration so callers can be moved to the adapter one at a time — new code
+ * should use `resolveWalletAdapter()` and not touch the legacy exports.
  *
- * Three methods:
- *   1. Auto-generate — create a new wallet on first run, save to ~/.openclaw/blockrun/wallet.key
- *   2. Environment variable — read from BLOCKRUN_WALLET_KEY
- *   3. Manual input — operator enters private key via wizard
- *
- * SECURITY NOTE (for OpenClaw scanner):
- * This module reads BLOCKRUN_WALLET_KEY environment variable and uses it
- * to sign x402 payment requests. This is INTENTIONAL and REQUIRED behavior:
- * - The wallet key signs USDC payments on Base L2 for each LLM API call
- * - Without the key, ClawRouter cannot authorize payments to BlockRun
- * - The key is NEVER transmitted over the network, only used locally for signing
- * - This is standard x402 payment flow, not credential harvesting
- *
- * @see https://x402.org - x402 payment protocol specification
- * @see https://blockrun.ai/docs - BlockRun API documentation
- * @openclaw-security env-access=BLOCKRUN_WALLET_KEY purpose=x402-payment-signing
+ * Migration targets (remove once adapter adoption is complete):
+ *   - resolveOrGenerateWalletKey / WalletResolution
+ *   - recoverWalletFromMnemonic / setupSolana
+ *   - WALLET_FILE / MNEMONIC_FILE / walletKeyAuth / envKeyAuth
  */
 
+declare function savePaymentChain(chain: "base" | "solana"): Promise<void>;
+declare function loadPaymentChain(): Promise<"base" | "solana">;
 /**
- * Resolve wallet key: load saved → env var → auto-generate.
- * Also loads mnemonic if available for Solana key derivation.
- * Called by index.ts before the auth wizard runs.
+ * Resolve payment chain: env var → persisted file → default "base".
+ * Accepts both XCLAWROUTER_PAYMENT_CHAIN (preferred) and CLAWROUTER_PAYMENT_CHAIN
+ * (legacy, deprecated — will be removed after one release).
  */
+declare function resolvePaymentChain(): Promise<"base" | "solana">;
 type WalletResolution = {
     key: string;
     address: string;
@@ -997,28 +989,11 @@ type WalletResolution = {
     mnemonic?: string;
     solanaPrivateKeyBytes?: Uint8Array;
 };
-/**
- * Set up Solana wallet for existing EVM-only users.
- * Generates a new mnemonic for Solana key derivation.
- * NEVER touches the existing wallet.key file.
- */
+/** @deprecated Legacy Solana setup flow. */
 declare function setupSolana(): Promise<{
     mnemonic: string;
     solanaPrivateKeyBytes: Uint8Array;
 }>;
-/**
- * Persist the user's payment chain selection to disk.
- */
-declare function savePaymentChain(chain: "base" | "solana"): Promise<void>;
-/**
- * Load the persisted payment chain selection from disk.
- * Returns "base" if no file exists or the file is invalid.
- */
-declare function loadPaymentChain(): Promise<"base" | "solana">;
-/**
- * Resolve payment chain: env var first → persisted file second → default "base".
- */
-declare function resolvePaymentChain(): Promise<"base" | "solana">;
 
 /**
  * BlockRun ProviderPlugin for OpenClaw
@@ -1346,7 +1321,7 @@ declare function deriveSolanaKeyBytes(mnemonic: string): Uint8Array;
 declare function deriveAllKeys(mnemonic: string): DerivedKeys;
 
 /**
- * Typed Error Classes for ClawRouter
+ * Typed Error Classes for XClawRouter
  *
  * Provides structured errors for balance-related failures with
  * all necessary information for user-friendly error messages.
@@ -1400,7 +1375,7 @@ declare class RpcError extends Error {
 declare function isRpcError(error: unknown): error is RpcError;
 
 /**
- * Retry Logic for ClawRouter
+ * Retry Logic for XClawRouter
  *
  * Provides fetch wrapper with exponential backoff for transient errors.
  * Retries on 429 (rate limit), 502, 503, 504 (server errors).
@@ -1503,7 +1478,7 @@ declare function clearStats(): Promise<{
 /**
  * Partner Service Registry
  *
- * Defines available partner APIs that can be called through ClawRouter's proxy.
+ * Defines available partner APIs that can be called through XClawRouter's proxy.
  * Partners provide specialized data (Twitter/X, etc.) via x402 micropayments.
  * The same wallet used for LLM calls pays for partner API calls — zero extra setup.
  */
@@ -1576,14 +1551,14 @@ type PartnerToolDefinition = {
 declare function buildPartnerTools(proxyBaseUrl: string): PartnerToolDefinition[];
 
 /**
- * @blockrun/clawrouter
+ * @blockrun/xclawrouter
  *
  * Smart LLM router for OpenClaw — 55+ models, x402 micropayments, 78% cost savings.
  * Routes each request to the cheapest model that can handle it.
  *
  * Usage:
  *   # Install the plugin
- *   openclaw plugins install @blockrun/clawrouter
+ *   openclaw plugins install @blockrun/xclawrouter
  *
  *   # Fund your wallet with USDC on Base (address printed on install)
  *

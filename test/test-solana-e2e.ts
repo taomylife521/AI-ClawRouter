@@ -1,7 +1,7 @@
 /**
  * End-to-end test for Solana x402 payment integration.
  *
- * Validates that ClawRouter correctly:
+ * Validates that XClawRouter correctly:
  *   1. Derives both EVM and Solana wallets from a BIP-39 mnemonic
  *   2. Registers both EVM and Solana x402 schemes
  *   3. Connects to the real BlockRun API

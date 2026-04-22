@@ -1,12 +1,12 @@
 /**
- * @blockrun/clawrouter
+ * @blockrun/xclawrouter
  *
  * Smart LLM router for OpenClaw — 55+ models, x402 micropayments, 78% cost savings.
  * Routes each request to the cheapest model that can handle it.
  *
  * Usage:
  *   # Install the plugin
- *   openclaw plugins install @blockrun/clawrouter
+ *   openclaw plugins install @blockrun/xclawrouter
  *
  *   # Fund your wallet with USDC on Base (address printed on install)
  *
@@ -94,7 +94,7 @@ function getPackageRoot(): string {
 }
 
 /**
- * Install ClawRouter skills into OpenClaw's workspace skills directory.
+ * Install XClawRouter skills into OpenClaw's workspace skills directory.
  *
  * OpenClaw agents discover skills by scanning {workspaceDir}/skills/ for SKILL.md
  * files. While the plugin manifest (`openclaw.plugin.json`) exposes skills for
@@ -129,7 +129,7 @@ function installSkillsToWorkspace(logger: {
     mkdirSync(workspaceSkillsDir, { recursive: true });
 
     // Scan bundled skills: each subdirectory contains a SKILL.md
-    // Skip internal-only skills (release is for ClawRouter maintainers, not end users)
+    // Skip internal-only skills (release is for XClawRouter maintainers, not end users)
     const INTERNAL_SKILLS = new Set(["release"]);
     const entries = readdirSync(bundledSkillsDir, { withFileTypes: true });
     let installed = 0;
@@ -833,7 +833,7 @@ async function startProxyInBackground(
     );
   }
 
-  api.logger.info(`ClawRouter ready — smart routing enabled`);
+  api.logger.info(`XClawRouter ready — smart routing enabled`);
   api.logger.info(`Pricing: Simple ~$0.001 | Code ~$0.01 | Complex ~$0.05 | Free: $0`);
 
   // Non-blocking balance check AFTER proxy is ready (won't hang startup)
@@ -940,7 +940,7 @@ function startProxyAfterPortProbe(api: OpenClawPluginApi, startupGeneration: num
 // createExcludeCommand moved to src/commands/exclude.ts
 
 /**
- * /wallet command handler for ClawRouter.
+ * /wallet command handler for XClawRouter.
  * - /wallet or /wallet status: Show wallet address, balance, usage, and key file location
  * - /wallet export: Show private key for backup (with security warning)
  */
@@ -1167,7 +1167,7 @@ function createWalletCommand(api?: OpenClawPluginApi): OpenClawPluginCommandDefi
 
       if (!walletKey || !address) {
         return {
-          text: `No ClawRouter wallet found.\n\nRun \`openclaw plugins install @blockrun/clawrouter\` to generate a wallet.`,
+          text: `No XClawRouter wallet found.\n\nRun \`openclaw plugins install @blockrun/xclawrouter\` to generate a wallet.`,
           isError: true,
         };
       }
@@ -1175,7 +1175,7 @@ function createWalletCommand(api?: OpenClawPluginApi): OpenClawPluginCommandDefi
       if (subcommand === "export") {
         // Export private key + mnemonic for backup
         const lines = [
-          "**ClawRouter Wallet Export**",
+          "**XClawRouter Wallet Export**",
           "",
           "**SECURITY WARNING**: Your private key and mnemonic control your wallet funds.",
           "Never share these. Anyone with them can spend your USDC.",
@@ -1395,7 +1395,7 @@ function createWalletCommand(api?: OpenClawPluginApi): OpenClawPluginCommandDefi
 
       return {
         text: [
-          "**ClawRouter Wallet**",
+          "**XClawRouter Wallet**",
           "",
           `**Payment Chain:** ${currentChain === "solana" ? "Solana" : "Base (EVM)"}`,
           "",
@@ -1425,17 +1425,17 @@ function createWalletCommand(api?: OpenClawPluginApi): OpenClawPluginCommandDefi
 
 const plugin: OpenClawPluginDefinition = {
   id: "clawrouter",
-  name: "ClawRouter",
+  name: "XClawRouter",
   description: "Smart LLM router — 55+ models, x402 micropayments, 78% cost savings",
   version: VERSION,
 
   register(api: OpenClawPluginApi) {
-    // Check if ClawRouter is disabled via environment variable
+    // Check if XClawRouter is disabled via environment variable
     // Usage: CLAWROUTER_DISABLED=true openclaw gateway start
     const isDisabled =
       process["env"].CLAWROUTER_DISABLED === "true" || process["env"].CLAWROUTER_DISABLED === "1";
     if (isDisabled) {
-      api.logger.info("ClawRouter disabled (CLAWROUTER_DISABLED=true). Using default routing.");
+      api.logger.info("XClawRouter disabled (CLAWROUTER_DISABLED=true). Using default routing.");
       return;
     }
 
@@ -1569,7 +1569,7 @@ const plugin: OpenClawPluginDefinition = {
           return { text: "No partner APIs available." };
         }
 
-        const lines = ["**Partner APIs** (paid via your ClawRouter wallet)", ""];
+        const lines = ["**Partner APIs** (paid via your XClawRouter wallet)", ""];
 
         for (const svc of PARTNER_SERVICES) {
           lines.push(`**${svc.name}** (${svc.partner})`);
@@ -1767,7 +1767,7 @@ const plugin: OpenClawPluginDefinition = {
         removeManagedBlockrunMcpServerConfig(config as OpenClawConfig);
 
         // Remove plugin entries (all case variants)
-        for (const key of ["clawrouter", "ClawRouter", "@blockrun/clawrouter"]) {
+        for (const key of ["clawrouter", "XClawRouter", "@blockrun/xclawrouter"]) {
           if (config.plugins?.entries?.[key]) delete config.plugins.entries[key];
           if (config.plugins?.installs?.[key]) delete config.plugins.installs[key];
         }
@@ -1775,7 +1775,7 @@ const plugin: OpenClawPluginDefinition = {
         // Remove from plugins.allow
         if (Array.isArray(config.plugins?.allow)) {
           config.plugins.allow = config.plugins.allow.filter(
-            (p: string) => p !== "clawrouter" && p !== "ClawRouter" && p !== "@blockrun/clawrouter",
+            (p: string) => p !== "clawrouter" && p !== "XClawRouter" && p !== "@blockrun/xclawrouter",
           );
         }
 
@@ -1799,7 +1799,7 @@ const plugin: OpenClawPluginDefinition = {
         const tmpPath = `${configPath}.tmp.${process.pid}`;
         writeFileSync(tmpPath, JSON.stringify(config, null, 2));
         renameSync(tmpPath, configPath);
-        api.logger.info("ClawRouter config cleaned up");
+        api.logger.info("XClawRouter config cleaned up");
       }
     } catch (err) {
       api.logger.warn(`Config cleanup failed: ${err instanceof Error ? err.message : String(err)}`);
@@ -1828,7 +1828,7 @@ const plugin: OpenClawPluginDefinition = {
       // Best-effort cleanup
     }
 
-    api.logger.info("ClawRouter deactivated — restart gateway to complete uninstall");
+    api.logger.info("XClawRouter deactivated — restart gateway to complete uninstall");
   },
 };
 
