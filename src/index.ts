@@ -1828,7 +1828,8 @@ const plugin: OpenClawPluginDefinition = {
         // Remove from plugins.allow
         if (Array.isArray(config.plugins?.allow)) {
           config.plugins.allow = config.plugins.allow.filter(
-            (p: string) => p !== "clawrouter" && p !== "XClawRouter" && p !== "@blockrun/xclawrouter",
+            (p: string) =>
+              p !== "clawrouter" && p !== "XClawRouter" && p !== "@blockrun/xclawrouter",
           );
         }
 

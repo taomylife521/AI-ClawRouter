@@ -56,7 +56,7 @@ This is the stack that lets agents operate autonomously: **x402 + USDC + local r
 
 ## How it compares
 
-|                  | OpenRouter        | LiteLLM          | Martian           | Portkey           | **XClawRouter**          |
+|                  | OpenRouter        | LiteLLM          | Martian           | Portkey           | **XClawRouter**         |
 | ---------------- | ----------------- | ---------------- | ----------------- | ----------------- | ----------------------- |
 | **Models**       | 200+              | 100+             | Smart routing     | Gateway           | **55+**                 |
 | **Routing**      | Manual selection  | Manual selection | Smart (closed)    | Observability     | **Smart (open source)** |
@@ -207,16 +207,16 @@ Generate images directly from chat with `/imagegen`:
 /imagegen --model banana-pro --size 2048x2048 mountain landscape
 ```
 
-| Model                       | Provider              | Price       | Max Size  |
-| --------------------------- | --------------------- | ----------- | --------- |
-| `nano-banana`               | Google Gemini Flash   | $0.05/image | 1024x1024 |
-| `banana-pro`                | Google Gemini Pro     | $0.10/image | 4096x4096 |
-| `dall-e-3`                  | OpenAI DALL-E 3       | $0.04/image | 1792x1024 |
-| `gpt-image`                 | OpenAI GPT Image 1    | $0.02/image | 1536x1024 |
-| `flux`                      | Black Forest Flux 1.1 | $0.04/image | 1024x1024 |
-| `xai/grok-imagine-image`    | xAI Grok Imagine      | $0.02/image | 1024x1024 |
-| `xai/grok-imagine-image-pro`| xAI Grok Imagine Pro  | $0.07/image | 1024x1024 |
-| `zai/cogview-4`             | Zhipu CogView-4       | $0.015/image| 1440x1440 |
+| Model                        | Provider              | Price        | Max Size  |
+| ---------------------------- | --------------------- | ------------ | --------- |
+| `nano-banana`                | Google Gemini Flash   | $0.05/image  | 1024x1024 |
+| `banana-pro`                 | Google Gemini Pro     | $0.10/image  | 4096x4096 |
+| `dall-e-3`                   | OpenAI DALL-E 3       | $0.04/image  | 1792x1024 |
+| `gpt-image`                  | OpenAI GPT Image 1    | $0.02/image  | 1536x1024 |
+| `flux`                       | Black Forest Flux 1.1 | $0.04/image  | 1024x1024 |
+| `xai/grok-imagine-image`     | xAI Grok Imagine      | $0.02/image  | 1024x1024 |
+| `xai/grok-imagine-image-pro` | xAI Grok Imagine Pro  | $0.07/image  | 1024x1024 |
+| `zai/cogview-4`              | Zhipu CogView-4       | $0.015/image | 1440x1440 |
 
 ## Video Generation
 
@@ -228,12 +228,12 @@ curl -X POST http://localhost:8402/v1/videos/generations \
   -d '{"model":"bytedance/seedance-2.0-fast","prompt":"a red apple slowly spinning","duration_seconds":5}'
 ```
 
-| Model                          | Provider           | Price      | Duration              |
-| ------------------------------ | ------------------ | ---------- | --------------------- |
-| `bytedance/seedance-1.5-pro`   | ByteDance Seedance | $0.03/sec  | 5s default, up to 10s |
-| `bytedance/seedance-2.0-fast`  | ByteDance Seedance | $0.15/sec  | 5s default, up to 10s |
-| `bytedance/seedance-2.0`       | ByteDance Seedance | $0.30/sec  | 5s default, up to 10s |
-| `xai/grok-imagine-video`       | xAI Grok Imagine   | $0.05/sec  | 8s default            |
+| Model                         | Provider           | Price     | Duration              |
+| ----------------------------- | ------------------ | --------- | --------------------- |
+| `bytedance/seedance-1.5-pro`  | ByteDance Seedance | $0.03/sec | 5s default, up to 10s |
+| `bytedance/seedance-2.0-fast` | ByteDance Seedance | $0.15/sec | 5s default, up to 10s |
+| `bytedance/seedance-2.0`      | ByteDance Seedance | $0.30/sec | 5s default, up to 10s |
+| `xai/grok-imagine-video`      | xAI Grok Imagine   | $0.05/sec | 8s default            |
 
 Calls block for 30–120s while the upstream polls the job. Text-to-video and image-to-video (`image_url` parameter) are both supported. Seedance 2.0 Fast typically returns in 60–80s; 2.0 Pro trades latency for quality.
 
@@ -540,8 +540,8 @@ Run Claude Code with 50+ models, no rate limits, no Anthropic account, no phone 
 | Article                                                                                            | Topic                                                   |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | [11 Free AI Models, Zero Cost](docs/11-free-ai-models-zero-cost-blockrun.md)                       | How BlockRun gives developers top-tier LLMs for nothing |
-| [XClawRouter Cuts LLM API Costs 500×](docs/clawrouter-cuts-llm-api-costs-500x.md)                   | Deep dive into cost savings                             |
-| [XClawRouter vs OpenRouter](docs/clawrouter-vs-openrouter-llm-routing-comparison.md)                | Head-to-head comparison                                 |
+| [XClawRouter Cuts LLM API Costs 500×](docs/clawrouter-cuts-llm-api-costs-500x.md)                  | Deep dive into cost savings                             |
+| [XClawRouter vs OpenRouter](docs/clawrouter-vs-openrouter-llm-routing-comparison.md)               | Head-to-head comparison                                 |
 | [Smart LLM Router: 14-Dimension Classifier](docs/smart-llm-router-14-dimension-classifier.md)      | How the routing engine works                            |
 | [LLM Router Benchmark: 46 Models, Sub-1ms](docs/llm-router-benchmark-46-models-sub-1ms-routing.md) | Performance benchmarks                                  |
 | [Anthropic Cost Savings](docs/anthropic-cost-savings.md)                                           | Reducing Claude API spend                               |

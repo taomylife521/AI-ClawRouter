@@ -43,8 +43,7 @@ export function resolveWalletAdapter(opts?: {
   enableSolana?: boolean;
   bin?: string;
 }): WalletAdapter {
-  const enableSolana =
-    opts?.enableSolana ?? process.env.XCLAWROUTER_ENABLE_SOLANA === "1";
+  const enableSolana = opts?.enableSolana ?? process.env.XCLAWROUTER_ENABLE_SOLANA === "1";
   return new OnchainOsAdapter({
     bin: opts?.bin,
     enableSolana,
@@ -83,8 +82,7 @@ export async function loadPaymentChain(): Promise<"base" | "solana"> {
  * (legacy, deprecated — will be removed after one release).
  */
 export async function resolvePaymentChain(): Promise<"base" | "solana"> {
-  const env =
-    process.env.XCLAWROUTER_PAYMENT_CHAIN ?? process.env.CLAWROUTER_PAYMENT_CHAIN;
+  const env = process.env.XCLAWROUTER_PAYMENT_CHAIN ?? process.env.CLAWROUTER_PAYMENT_CHAIN;
   if (env === "solana") return "solana";
   if (env === "base") return "base";
   return loadPaymentChain();

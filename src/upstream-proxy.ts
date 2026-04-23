@@ -23,7 +23,9 @@ export async function applyUpstreamProxy(proxyUrl?: string): Promise<string | un
   try {
     parsed = new URL(url);
   } catch {
-    console.warn(`[XClawRouter] Invalid BLOCKRUN_UPSTREAM_PROXY URL: ${url} — skipping proxy setup`);
+    console.warn(
+      `[XClawRouter] Invalid BLOCKRUN_UPSTREAM_PROXY URL: ${url} — skipping proxy setup`,
+    );
     return undefined;
   }
 

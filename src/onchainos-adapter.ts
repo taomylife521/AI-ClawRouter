@@ -96,10 +96,7 @@ function runWithStdin(
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
       reject(
-        new OnchainOsCliError(
-          `onchainos ${args.join(" ")} timed out after ${timeoutMs}ms`,
-          stderr,
-        ),
+        new OnchainOsCliError(`onchainos ${args.join(" ")} timed out after ${timeoutMs}ms`, stderr),
       );
     }, timeoutMs);
     child.stdout.on("data", (chunk) => {
@@ -217,28 +214,20 @@ export class OnchainOsAdapter implements WalletAdapter {
     );
     const parsed = parseJson<{ signature: string }>(stdout, "sign typed-data");
     if (!parsed.signature?.startsWith("0x")) {
-      throw new OnchainOsCliError(
-        `onchainos returned an invalid signature: ${parsed.signature}`,
-      );
+      throw new OnchainOsCliError(`onchainos returned an invalid signature: ${parsed.signature}`);
     }
     return parsed.signature as `0x${string}`;
   }
 
   /** Internal: sign a partially-signed Solana transaction via the CLI. */
   async signSolanaTransaction(transactionBase64: string): Promise<string> {
-    const stdout = await runCli(
-      this.bin,
-      ["sign", "solana-transaction", "--transaction", "-"],
-      { input: transactionBase64, timeoutMs: this.timeoutMs },
-    );
-    const parsed = parseJson<{ signedTransaction: string }>(
-      stdout,
-      "sign solana-transaction",
-    );
+    const stdout = await runCli(this.bin, ["sign", "solana-transaction", "--transaction", "-"], {
+      input: transactionBase64,
+      timeoutMs: this.timeoutMs,
+    });
+    const parsed = parseJson<{ signedTransaction: string }>(stdout, "sign solana-transaction");
     if (!parsed.signedTransaction) {
-      throw new OnchainOsCliError(
-        "onchainos returned no signedTransaction for Solana signing.",
-      );
+      throw new OnchainOsCliError("onchainos returned no signedTransaction for Solana signing.");
     }
     return parsed.signedTransaction;
   }
@@ -250,9 +239,7 @@ class OnchainOsEvmAdapter implements EvmWalletAdapter {
   async getAddress(): Promise<`0x${string}`> {
     const s = await this.parent.status();
     if (!s.evmAddress) {
-      throw new Error(
-        "onchainos reports no EVM address. Run `/wallet login <email>` to connect.",
-      );
+      throw new Error("onchainos reports no EVM address. Run `/wallet login <email>` to connect.");
     }
     return s.evmAddress;
   }

@@ -108,9 +108,9 @@ Edit an existing image using AI. Route via XClawRouter proxy (`http://localhost:
 
 | Format             | Example                            | Description                                    |
 | ------------------ | ---------------------------------- | ---------------------------------------------- |
-| Local file path    | `"/Users/me/photo.png"`            | Absolute path — XClawRouter reads the file      |
+| Local file path    | `"/Users/me/photo.png"`            | Absolute path — XClawRouter reads the file     |
 | Home-relative path | `"~/photo.png"`                    | Expands `~` to home directory                  |
-| HTTP/HTTPS URL     | `"https://example.com/photo.png"`  | XClawRouter downloads the image automatically   |
+| HTTP/HTTPS URL     | `"https://example.com/photo.png"`  | XClawRouter downloads the image automatically  |
 | Base64 data URI    | `"data:image/png;base64,iVBOR..."` | Passed through directly (no conversion needed) |
 
 Supported image formats: **PNG**, **JPG/JPEG**, **WebP**.

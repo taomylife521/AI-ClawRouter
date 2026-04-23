@@ -256,7 +256,7 @@ No silent drops. No stale catalog. Models are benchmarked for speed, quality, an
 
 ## The Full Comparison
 
-|                     | OpenRouter                       | XClawRouter                                     |
+|                     | OpenRouter                       | XClawRouter                                    |
 | ------------------- | -------------------------------- | ---------------------------------------------- |
 | **Authentication**  | API key (leak risk)              | Wallet signature (no keys)                     |
 | **Payment**         | Prepaid balance (custodial)      | Per-request USDC (non-custodial)               |

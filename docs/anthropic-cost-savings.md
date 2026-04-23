@@ -175,7 +175,7 @@ The deduplicator also catches in-flight duplicates: if two identical requests ar
 | -------------------- | ------------ | -------------------------------- |
 | Direct Claude Sonnet | $105.00      | —                                |
 | Direct Claude Opus   | $175.00      | —                                |
-| **XClawRouter**       | **~$20**     | **~81% vs Sonnet, ~89% vs Opus** |
+| **XClawRouter**      | **~$20**     | **~81% vs Sonnet, ~89% vs Opus** |
 
 Breaking down where the savings come from:
 
@@ -309,7 +309,7 @@ $ /stats 7
 
 ## Why XClawRouter Instead of OpenRouter?
 
-|                        | XClawRouter                                          | OpenRouter                         |
+|                        | XClawRouter                                         | OpenRouter                         |
 | ---------------------- | --------------------------------------------------- | ---------------------------------- |
 | **Smart routing**      | Automatic — 14-dimension scorer picks the model     | Manual — you pick the model        |
 | **Token optimization** | Built-in compression (7-15% savings)                | None                               |
@@ -330,7 +330,7 @@ The fundamental difference: **OpenRouter is a model marketplace where you choose
 | What                 | Details                                                                    |
 | -------------------- | -------------------------------------------------------------------------- |
 | **Problem**          | You pay Claude $3-25/M tokens on every request, but ~70% don't need Claude |
-| **Solution**         | XClawRouter auto-routes + compresses + caches                               |
+| **Solution**         | XClawRouter auto-routes + compresses + caches                              |
 | **Savings**          | ~81% vs Sonnet, ~89% vs Opus                                               |
 | **How**              | Routing (68%) + token compression (7-15%) + caching (3-5%)                 |
 | **Code change**      | 2 lines (base_url + model name)                                            |

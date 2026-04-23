@@ -15,10 +15,7 @@ import { OnchainOsAdapter, OnchainOsCliError } from "./onchainos-adapter.js";
 
 let tmpDir: string;
 
-async function writeFakeCli(
-  name: string,
-  script: string,
-): Promise<string> {
+async function writeFakeCli(name: string, script: string): Promise<string> {
   const path = join(tmpDir, name);
   await writeFile(path, `#!/usr/bin/env node\n${script}\n`, "utf8");
   await chmod(path, 0o755);
@@ -185,8 +182,6 @@ describe("OnchainOsAdapter.login validation", () => {
     const adapter = new OnchainOsAdapter({
       bin: join(tmpDir, "unused"),
     });
-    await expect(adapter.login("not-an-email")).rejects.toThrow(
-      /Invalid email/,
-    );
+    await expect(adapter.login("not-an-email")).rejects.toThrow(/Invalid email/);
   });
 });

@@ -78,8 +78,8 @@ Assume 100 requests per day, distributed roughly as:
 | --------------------------- | ---------------------- |
 | Pure Claude Opus 4          | ~$75–150               |
 | Pure GPT-4o                 | ~$15–30                |
-| XClawRouter AUTO mode        | ~$5–10                 |
-| XClawRouter ECO mode         | ~$1–3                  |
+| XClawRouter AUTO mode       | ~$5–10                 |
+| XClawRouter ECO mode        | ~$1–3                  |
 | Manual free model selection | **$0**                 |
 
 **ECO mode saves 92%+ compared to Claude Opus alone.**
