@@ -9,6 +9,7 @@
  */
 
 import type { ModelDefinitionConfig, ModelProviderConfig } from "./types.js";
+import { TOP_MODELS } from "./top-models.js";
 
 /**
  * Model aliases for convenient shorthand access.
@@ -1149,6 +1150,7 @@ const ALIAS_MODELS: ModelDefinitionConfig[] = Object.entries(MODEL_ALIASES)
 
 /**
  * All BlockRun models in OpenClaw format (including aliases).
+ * Used for proxy-side resolution (alias → target ID), tool routing, etc.
  */
 export const OPENCLAW_MODELS: ModelDefinitionConfig[] = [
   ...BLOCKRUN_MODELS.map(toOpenClawModel),
@@ -1156,7 +1158,20 @@ export const OPENCLAW_MODELS: ModelDefinitionConfig[] = [
 ];
 
 /**
+ * Subset of OPENCLAW_MODELS the OpenClaw `/model` picker advertises —
+ * driven by `src/top-models.json`. Hidden entries remain callable via direct
+ * ID and via aliases; they just don't clutter the picker.
+ */
+const TOP_MODELS_SET = new Set(TOP_MODELS);
+export const VISIBLE_OPENCLAW_MODELS: ModelDefinitionConfig[] = OPENCLAW_MODELS.filter((m) =>
+  TOP_MODELS_SET.has(m.id),
+);
+
+/**
  * Build a ModelProviderConfig for BlockRun.
+ *
+ * Returns only the TOP_MODELS-listed subset so the OpenClaw picker stays
+ * focused. Hidden models are still resolvable through the proxy.
  *
  * @param baseUrl - The proxy's local base URL (e.g., "http://127.0.0.1:12345")
  */
@@ -1164,7 +1179,7 @@ export function buildProviderModels(baseUrl: string): ModelProviderConfig {
   return {
     baseUrl: `${baseUrl}/v1`,
     api: "openai-completions",
-    models: OPENCLAW_MODELS,
+    models: VISIBLE_OPENCLAW_MODELS,
   };
 }
 

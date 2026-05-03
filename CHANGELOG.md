@@ -4,6 +4,15 @@ All notable changes to ClawRouter.
 
 ---
 
+## v0.12.175 — May 2, 2026
+
+- **Picker filter actually works now.** v0.12.173's `top-models.json` trim was supposed to slim the OpenClaw `/model` picker but didn't, because the picker reads from `cfg.models.providers.blockrun.models` — populated by ClawRouter's `provider.models` getter (`src/provider.ts:43`) → `buildProviderModels()` (`src/models.ts:1163`) — which returned the FULL `OPENCLAW_MODELS` array (~175 entries: 68 BLOCKRUN_MODELS + 107 ALIAS_MODELS). `top-models.json` only drove `agents.defaults.models` (a separate allowlist that controls "which models can be set as default", NOT what shows in the picker). Net effect for users on v0.12.173/v0.12.174: their picker still showed 50–58+ entries including long-retired models (`gpt-5.2`, `gpt-4.1`, `o1`, `o1-mini`, `o3-mini`, `nvidia/kimi-k2.5`, `xai/grok-2-vision`, `free/nemotron-ultra-253b`, etc.).
+- **Fix**: `buildProviderModels` now filters `OPENCLAW_MODELS` through a `TOP_MODELS_SET` derived from `src/top-models.json`. Picker drops to ~38 visible entries on next OpenClaw refresh of the provider models. New `VISIBLE_OPENCLAW_MODELS` export in `src/models.ts` is the canonical "what the picker advertises" list.
+- **/v1/models HTTP endpoint deliberately unchanged** — still returns the full ~175-entry list for API-level discovery (per Your Majesty's original v0.12.173 intent: "hide from list, but still callable"). Direct ID + alias resolution unaffected; router fallbacks unaffected; proxy routing unaffected.
+- **Migration note for existing users**: OpenClaw merges, never deletes, from `cfg.models.providers.blockrun.models`. So users who installed v0.12.174 or earlier still have their old 159-entry array on disk; they'll need either a fresh OpenClaw plugin re-install (which re-reads `provider.models`) or manual openclaw.json cleanup. Future install/update scripts should add a prune step here, similar to the existing `agents.defaults.models` prune — tracked as a follow-up.
+
+---
+
 ## v0.12.174 — May 2, 2026
 
 - **`profile=auto` and `profile=agentic` MEDIUM-tier primary swapped from Kimi K2.5 → K2.6.** Per-call cost on these MEDIUM routes goes from $0.60/$3.00 → $0.95/$4.00 — that's **+58% on input tokens, +33% on output tokens** for default-profile users whose classifier returns MEDIUM. The decision deliberately reverses v0.12.170's "tier primaries unchanged pending K2.6 retention/IQ data" stance. The trigger: BlockRun hid K2.5 from its public UI on 2026-04-28 (commit `bfbdedf`) and we hid it from ClawRouter's picker in v0.12.173, so the trajectory toward server-side K2.5 retirement is clear. Promoting K2.6 now is future-proofing — if BlockRun pulls K2.5 server-side later, every MEDIUM call would otherwise 400 → fallback-second-choice silently, which is harder to debug than a clean primary that is already on the still-supported model.
