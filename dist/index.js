@@ -82256,6 +82256,10 @@ function injectModelsConfig(logger) {
     );
   }
   if (needsWrite) {
+    if (!isGatewayMode()) {
+      logger.info("Deferring config write to first gateway start (outside gateway mode)");
+      return;
+    }
     try {
       const tmpPath = `${configPath}.tmp.${process.pid}`;
       writeFileSync3(tmpPath, JSON.stringify(config, null, 2));
